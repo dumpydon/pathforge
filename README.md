@@ -1,4 +1,9 @@
 # PathForge
+Interactive graph-search laboratory for exploring, visualizing, and comparing
+
+BFS, DFS, Dijkstra, and A*.
+
+**[Live Demo](https://pathforge.dumpydon.workers.dev)**
 
 PathForge is an interactive graph-search laboratory for visualizing and comparing BFS, DFS, Dijkstra and A* on weighted grid environments.
 
