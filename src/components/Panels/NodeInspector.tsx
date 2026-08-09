@@ -22,10 +22,7 @@ export function NodeInspector({ algorithm, grid, coordinate, node, playbackEnabl
   return (
     <section className="panel-section inspector-panel">
       <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Playback state</p>
-          <h2>Node inspector</h2>
-        </div>
+        <h2>Node inspector</h2>
         <code>{formatCoordinate(coordinate)}</code>
       </div>
 

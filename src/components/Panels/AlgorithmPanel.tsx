@@ -12,10 +12,7 @@ export function AlgorithmPanel({ algorithm, heuristic }: AlgorithmPanelProps) {
   return (
     <section className="panel-section algorithm-panel">
       <div className="section-heading">
-        <div>
-          <p className="eyebrow">Selected algorithm</p>
-          <h2>{info.name}</h2>
-        </div>
+        <h2>{info.name}</h2>
         <span className="algorithm-chip">{info.structure}</span>
       </div>
       <p className="technical-summary">{info.summary}</p>
@@ -38,4 +35,3 @@ export function AlgorithmPanel({ algorithm, heuristic }: AlgorithmPanelProps) {
     </section>
   );
 }
-

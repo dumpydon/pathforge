@@ -230,14 +230,12 @@ a {
 }
 
 .control-label,
-.meta-label,
-.eyebrow {
-  color: var(--text-subtle);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.meta-label {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .segmented-control,
@@ -381,11 +379,7 @@ a {
 }
 
 .grid-size-control label {
-  gap: 4px;
-  color: var(--text-subtle);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  text-transform: uppercase;
+  gap: 0;
 }
 
 .grid-size-control input,
@@ -747,13 +741,9 @@ a {
 
 .section-heading h2,
 .comparison-heading h2 {
-  margin: 3px 0 0;
+  margin: 0;
   font-size: 14px;
   letter-spacing: -0.01em;
-}
-
-.eyebrow {
-  margin: 0;
 }
 
 .algorithm-chip {
@@ -964,11 +954,11 @@ tbody tr:last-child td {
 
 thead th {
   background: #151b23;
-  color: var(--text-subtle);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 tbody th {
@@ -1117,11 +1107,6 @@ kbd {
 
   .algorithm-switcher {
     width: 100%;
-  }
-
-  .algorithm-switcher .control-label,
-  .toolbar-secondary > .control-group > .control-label {
-    display: none;
   }
 
   .segmented-control,

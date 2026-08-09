@@ -22,10 +22,7 @@ export function ComparisonPanel({
   return (
     <section className="comparison-section">
       <div className="comparison-heading">
-        <div>
-          <p className="eyebrow">Identical map, independent runs</p>
-          <h2>Algorithm comparison</h2>
-        </div>
+        <h2>Algorithm comparison</h2>
         {hasWeightedTerrain && (
           <p className="weight-notice">
             BFS and DFS traverse weighted cells but do not optimize their cost.

@@ -40,7 +40,7 @@ export function GridSizeControls({ rows, cols, onResize }: GridSizeControlsProps
     <div className="grid-size-control">
       <span className="control-label">Grid</span>
       <label>
-        <span>Rows</span>
+        <span className="sr-only">Rows</span>
         <input
           type="number"
           inputMode="numeric"
@@ -55,7 +55,7 @@ export function GridSizeControls({ rows, cols, onResize }: GridSizeControlsProps
       </label>
       <span className="dimension-separator" aria-hidden="true">×</span>
       <label>
-        <span>Columns</span>
+        <span className="sr-only">Columns</span>
         <input
           type="number"
           inputMode="numeric"

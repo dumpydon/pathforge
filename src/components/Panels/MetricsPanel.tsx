@@ -16,10 +16,7 @@ export function MetricsPanel({ result, frontierSize, playbackEnabled }: MetricsP
   return (
     <section className="panel-section metrics-panel">
       <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Pure execution</p>
-          <h2>Run metrics</h2>
-        </div>
+        <h2>Run metrics</h2>
         {result && (
           <span className={`status-badge ${result.found ? "status-found" : "status-missing"}`}>
             {result.found ? "Path found" : "No path"}

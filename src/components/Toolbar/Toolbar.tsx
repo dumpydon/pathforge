@@ -46,7 +46,6 @@ export function Toolbar(props: ToolbarProps) {
     <section className="toolbar" aria-label="Pathfinding controls">
       <div className="toolbar-row toolbar-primary">
         <div className="control-group algorithm-switcher" aria-label="Algorithm">
-          <span className="control-label">Algorithm</span>
           <div className="segmented-control">
             {ALGORITHM_ORDER.map((algorithm) => (
               <button
@@ -111,7 +110,6 @@ export function Toolbar(props: ToolbarProps) {
 
       <div className="toolbar-row toolbar-secondary">
         <div className="control-group">
-          <span className="control-label">Edit</span>
           <div className="tool-buttons">
             {TOOLS.map((tool) => (
               <button
