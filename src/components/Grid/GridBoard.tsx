@@ -1,0 +1,123 @@
+"use client";
+
+import { useEffect, useState, type CSSProperties, type PointerEvent } from "react";
+import { terrainAt } from "../../core/grid";
+import { coordinateKey, coordinatesEqual, type Coordinate, type Grid } from "../../core/types";
+import type { PlaybackSnapshot } from "../../playback/types";
+
+export type PaintTool = "wall" | "mud" | "water" | "erase";
+
+interface GridBoardProps {
+  grid: Grid;
+  snapshot: PlaybackSnapshot;
+  selectedCoordinate: Coordinate | null;
+  onInspect: (coordinate: Coordinate) => void;
+  onPaint: (coordinate: Coordinate) => void;
+  onMoveEndpoint: (endpoint: "start" | "target", coordinate: Coordinate) => void;
+}
+
+type DragMode = "paint" | "start" | "target" | null;
+
+export function GridBoard({
+  grid,
+  snapshot,
+  selectedCoordinate,
+  onInspect,
+  onPaint,
+  onMoveEndpoint,
+}: GridBoardProps) {
+  const [dragMode, setDragMode] = useState<DragMode>(null);
+
+  useEffect(() => {
+    const stopDragging = () => setDragMode(null);
+    window.addEventListener("pointerup", stopDragging);
+    window.addEventListener("pointercancel", stopDragging);
+    return () => {
+      window.removeEventListener("pointerup", stopDragging);
+      window.removeEventListener("pointercancel", stopDragging);
+    };
+  }, []);
+
+  const beginInteraction = (event: PointerEvent, coordinate: Coordinate): void => {
+    event.preventDefault();
+    onInspect(coordinate);
+    if (coordinatesEqual(coordinate, grid.start)) {
+      setDragMode("start");
+    } else if (coordinatesEqual(coordinate, grid.target)) {
+      setDragMode("target");
+    } else {
+      setDragMode("paint");
+      onPaint(coordinate);
+    }
+  };
+
+  const continueInteraction = (coordinate: Coordinate): void => {
+    if (dragMode === "paint") onPaint(coordinate);
+    if (dragMode === "start" || dragMode === "target") {
+      onMoveEndpoint(dragMode, coordinate);
+      onInspect(coordinate);
+    }
+  };
+
+  return (
+    <div className="grid-frame">
+      <div
+        className="grid-board"
+        style={{ "--grid-cols": grid.cols } as CSSProperties}
+        role="grid"
+        aria-label={`${grid.rows} by ${grid.cols} pathfinding grid`}
+      >
+        {grid.terrain.map((_, index) => {
+          const coordinate = { row: Math.floor(index / grid.cols), col: index % grid.cols };
+          const key = coordinateKey(coordinate);
+          const terrain = terrainAt(grid, coordinate);
+          const playbackNode = snapshot.nodes.get(key);
+          const isStart = coordinatesEqual(coordinate, grid.start);
+          const isTarget = coordinatesEqual(coordinate, grid.target);
+          const isSelected = selectedCoordinate
+            ? coordinatesEqual(coordinate, selectedCoordinate)
+            : false;
+          const endpointLabel = isStart && isTarget ? "ST" : isStart ? "S" : isTarget ? "T" : "";
+          const stateLabel = playbackNode?.state ? `, ${playbackNode.state}` : "";
+
+          return (
+            <button
+              key={key}
+              type="button"
+              className={[
+                "grid-cell",
+                `terrain-${terrain}`,
+                playbackNode ? `search-${playbackNode.state}` : "",
+                isStart ? "is-start" : "",
+                isTarget ? "is-target" : "",
+                isSelected ? "is-selected" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              role="gridcell"
+              aria-label={`Row ${coordinate.row + 1}, column ${coordinate.col + 1}, ${terrain}${stateLabel}${
+                endpointLabel ? `, ${endpointLabel === "S" ? "start" : endpointLabel === "T" ? "target" : "start and target"}` : ""
+              }`}
+              onPointerDown={(event) => beginInteraction(event, coordinate)}
+              onPointerEnter={() => continueInteraction(coordinate)}
+              onDoubleClick={() => onInspect(coordinate)}
+            >
+              {endpointLabel && <span className="endpoint-label">{endpointLabel}</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div className="grid-legend" aria-label="Grid legend">
+        <span><i className="legend-swatch swatch-start">S</i>Start</span>
+        <span><i className="legend-swatch swatch-target">T</i>Target</span>
+        <span><i className="legend-swatch swatch-frontier" />Frontier</span>
+        <span><i className="legend-swatch swatch-closed" />Closed</span>
+        <span><i className="legend-swatch swatch-path" />Path</span>
+        <span><i className="legend-swatch swatch-mud" />Mud 3</span>
+        <span><i className="legend-swatch swatch-water" />Water 5</span>
+        <span><i className="legend-swatch swatch-wall" />Wall</span>
+      </div>
+    </div>
+  );
+}
+
