@@ -22,6 +22,9 @@
   --mud: #6f5838;
   --water: #244c68;
   --wall: #343b45;
+  --pathforge-orange: #f7931e;
+  --pathforge-orange-deep: #ff6b35;
+  --pathforge-highlight: #ffcc02;
   --font-sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
@@ -134,12 +137,39 @@ a {
   gap: 8px;
 }
 
-.brand-line h1 {
+.pathforge-wordmark {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 17px;
+  color: var(--pathforge-orange);
+  background-image: linear-gradient(
+    45deg,
+    var(--pathforge-orange-deep),
+    var(--pathforge-orange),
+    var(--pathforge-highlight),
+    var(--pathforge-orange-deep)
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: var(--font-pathforge), "Press Start 2P", var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
+  text-shadow: 0 0 20px rgba(255, 107, 53, 0.34);
+  animation: pathforge-flame-gradient 3s ease-in-out infinite;
+}
+
+@keyframes pathforge-flame-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .brand-lockup p {
@@ -1162,5 +1192,10 @@ kbd {
 
   .grid-cell {
     transition: none;
+  }
+
+  .pathforge-wordmark {
+    background-position: 45% 50%;
+    animation: none;
   }
 }

@@ -220,7 +220,7 @@ export default function App() {
           <span className="brand-mark" aria-hidden="true">PF</span>
           <div>
             <div className="brand-line">
-              <h1>PathForge</h1>
+              <h1 className="pathforge-wordmark">PathForge</h1>
               <span className="version-tag">v1.0</span>
             </div>
             <p>Interactive graph-search laboratory</p>

@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
+import { Press_Start_2P } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
+
+const pressStart2P = Press_Start_2P({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-pathforge",
+  weight: "400",
+});
 
 const title = "PathForge — Graph-search laboratory";
 const description =
@@ -38,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={pressStart2P.variable}>{children}</body>
     </html>
   );
 }
