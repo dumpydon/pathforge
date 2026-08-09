@@ -149,7 +149,13 @@ export function Toolbar(props: ToolbarProps) {
         />
 
         <div className="maze-actions">
-          <button type="button" className="text-button" onClick={props.onRandom}>Random obstacles</button>
+          <button
+            type="button"
+            className="text-button random-obstacles-button"
+            onClick={props.onRandom}
+          >
+            Random obstacles
+          </button>
           <button type="button" className="text-button" onClick={props.onRecursiveDivision}>Recursive division</button>
         </div>
 
