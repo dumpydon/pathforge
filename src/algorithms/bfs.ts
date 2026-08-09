@@ -4,10 +4,11 @@ import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { Queue } from "../structures/Queue";
 import { finishSearch } from "./shared";
-import type { SearchEvent, SearchResult } from "./types";
+import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 
-export function bfs(grid: Grid): SearchResult {
+export function bfs(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
+  const recordEvents = options.recordEvents ?? true;
   const startedAt = performance.now();
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -22,7 +23,7 @@ export function bfs(grid: Grid): SearchResult {
   let found = false;
 
   queue.enqueue(startIndex);
-  events.push({
+  if (recordEvents) events.push({
     type: "discovered",
     coordinate: grid.start,
     frontierSize: 1,
@@ -36,7 +37,7 @@ export function bfs(grid: Grid): SearchResult {
     const level = levels.get(current) ?? 0;
     expandedCount += 1;
 
-    events.push({
+    if (recordEvents) events.push({
       type: "expanded",
       coordinate,
       frontierSize: queue.size,
@@ -49,7 +50,7 @@ export function bfs(grid: Grid): SearchResult {
 
     if (current === targetIndex) {
       found = true;
-      events.push({ type: "closed", coordinate, frontierSize: queue.size });
+      if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: queue.size });
       break;
     }
 
@@ -63,7 +64,7 @@ export function bfs(grid: Grid): SearchResult {
       discoveredCount += 1;
       maxFrontierSize = Math.max(maxFrontierSize, queue.size);
 
-      events.push({
+      if (recordEvents) events.push({
         type: "discovered",
         coordinate: fromIndex(grid, neighbor),
         frontierSize: queue.size,
@@ -75,7 +76,7 @@ export function bfs(grid: Grid): SearchResult {
       });
     }
 
-    events.push({ type: "closed", coordinate, frontierSize: queue.size });
+    if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: queue.size });
   }
 
   const path = found ? reconstructPath(grid, parents, targetIndex) : [];
@@ -88,7 +89,7 @@ export function bfs(grid: Grid): SearchResult {
     expandedCount,
     maxFrontierSize,
     events,
+    recordEvents,
     startedAt,
   });
 }
-

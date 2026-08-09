@@ -2,7 +2,7 @@
 
 PathForge is an interactive graph-search laboratory for visualizing and comparing BFS, DFS, Dijkstra and A* on weighted grid environments.
 
-The algorithms run independently from React. Each run produces a typed event log and structural metrics; the playback layer consumes that log later for animation, pause, replay, and expansion-level stepping.
+The algorithms run independently from React. Interactive runs produce a typed event log that the playback layer consumes later; large-grid benchmark runs use the same algorithms without recording events.
 
 ![PathForge running A* on the Weighted Detour scenario](docs/pathforge.png)
 
@@ -20,6 +20,8 @@ The repository is also structured so the algorithm code can be discussed and tes
 - Run all four algorithms immediately on an unchanged grid, then replay any recorded run.
 - Load five deterministic scenarios: Open Field, Weighted Detour, Narrow Maze, Dense Obstacles, and No Path.
 - Generate random-obstacle boards or recursive-division mazes.
+- Resize the board from 5 × 5 through 300 × 300, with Small, Default, Large, and Stress presets.
+- Switch automatically to metrics-only benchmark mode above 10,000 vertices.
 - Use Manhattan or Euclidean distance with A*.
 - Use keyboard shortcuts: `Space` run/pause, `S` step, `R` reset search, and `C` clear board.
 
@@ -38,7 +40,7 @@ DFS pushes neighbors in reverse of the shared `up, right, down, left` order so t
 
 ## Comparing results
 
-`Run all` executes BFS, DFS, Dijkstra, and A* without animation and fills a shared comparison table:
+`Run all` executes BFS, DFS, Dijkstra, and A* without animation and fills a shared comparison table. Interactive boards retain each event log for replay; benchmark boards retain only the result, final path, and metrics.
 
 - path found
 - path cost
@@ -56,11 +58,9 @@ Grid domain model
       ↓
 Pure algorithm engine
       ↓
-SearchResult + SearchEvent[]
-      ↓
-Playback reducer / cursor
-      ↓
-React visualization and inspector
+SearchResult + optional SearchEvent[]
+      ├── events recorded → Playback reducer / React grid
+      └── events omitted  → Canvas result overview / metrics
 ```
 
 Algorithms use local mutable arrays, maps, sets, queues, and heaps because those structures are appropriate during a search. The input grid is not mutated, and the result crosses the engine boundary as plain data. React owns the editable grid reference, the selected result, and playback state; it never participates in the algorithm loop.
@@ -78,6 +78,14 @@ The event model is a discriminated union:
 - `path`: one coordinate in the reconstructed final path
 
 Events include the coordinate, current logical frontier size, and only the values meaningful to that operation. The playback reducer folds events into a `Map<coordinateKey, PlaybackNode>`; it does not clone the terrain grid. Automatic playback batches a small number of events per frame. Manual `Step` advances through the next `expanded … closed` group, so a step represents algorithm work rather than one arbitrary visual frame.
+
+Every search accepts `recordEvents`. It defaults to `true`; when false, event object construction and final path-event creation are skipped while path reconstruction and all metrics remain unchanged. The UI selects this mode from the grid dimensions rather than duplicating the algorithms.
+
+## Grid size and benchmark mode
+
+Rows and columns are validated as whole numbers from 5 through 300. Resizing creates a new normal-terrain board, places endpoints at proportional horizontal insets, and atomically discards the old active result, playback cursor, and comparison results.
+
+Boards with at most 10,000 vertices use the existing button-based editor and event playback. Above that threshold, mounting one DOM element per cell and retaining operation-level histories becomes the larger cost, so PathForge uses a canvas overview and disables cell-level editing and playback. Random obstacles and recursive division remain available for constructing large benchmark maps. The 100 × 150 Stress preset and 300 × 300 maximum therefore render one canvas rather than 15,000 or 90,000 cell buttons.
 
 ## A* heuristics
 
@@ -112,6 +120,8 @@ Vitest tests the algorithm layer without rendering React. Coverage includes:
 - deterministic seeded weighted grids where A* must match Dijkstra for every reachable case
 - playback reduction and expansion-step boundaries
 - deterministic presets and maze-generator invariants
+- grid dimension bounds, proportional endpoints, and resize-state invalidation
+- post-resize searches and event-free large-grid runs for all four algorithms
 
 Browser timing on small grids is noisy. The application measures pure algorithm execution, including result/event construction but excluding playback and rendering. Structural metrics—especially expanded nodes—are usually more informative for comparisons.
 
@@ -140,6 +150,7 @@ src/
   algorithms/      BFS, DFS, Dijkstra, A*, heuristics, result/event types
   structures/      MinHeap and head-index Queue
   core/            grid model, neighbors, path reconstruction and validation
+  state/           atomic board replacement and resize state
   playback/        pure event reducer and playback state
   mazes/           presets, seeded random obstacles, recursive division
   components/      grid, toolbar, metrics, algorithm, inspector, comparison UI
@@ -154,14 +165,16 @@ docs/               repository screenshot
 - Four-directional movement keeps the initial heuristic contract precise and avoids hiding corner-cutting rules inside a UI toggle.
 - The heap intentionally has no decrease-key operation. Duplicate insertions keep the generic heap API small; algorithms reject stale entries on pop.
 - Maximum frontier size measures the logical open set, not stale heap entries. That makes the cross-algorithm metric describe pending nodes rather than an implementation artifact.
-- The event log increases memory use relative to a metrics-only run, but enables deterministic replay and keeps timing/rendering out of the algorithms.
-- `Run all` records four event logs instead of animating four grids simultaneously. This uses more memory but makes comparison and replay easier to read.
+- Interactive event logs increase memory use, but enable deterministic replay and keep timing/rendering out of the algorithms. Benchmark mode disables their construction entirely.
+- `Run all` records four event logs only on interactive grids. On larger grids it stores four compact results and exposes each final path through the canvas overview.
 - Terrain is a flat array for predictable indexing. UI edits copy that array; search runs allocate their own score/state structures.
+- The 10,000-vertex cutoff is tied to the current one-button-per-cell editor. It keeps 100 × 100 interactive while moving the 100 × 150 Stress preset to canvas-backed benchmark mode.
 
 ## Limitations
 
 - Movement is four-directional; diagonal cost, octile distance, and corner-cutting rules are not implemented.
-- Event logs scale with the number of search operations and are retained for all four comparison runs.
+- Cell-level painting and endpoint dragging are disabled in benchmark mode; generators still operate on the full grid.
+- Searches run synchronously on the main thread, so a worst-case 300 × 300 run can briefly occupy the UI thread even though it avoids event and DOM-cell overhead.
 - Runtime measurements are browser-local observations, not scientific benchmarks.
 - Boards are device-local and are not persisted or shared.
 
@@ -170,5 +183,4 @@ docs/               repository screenshot
 - Previous-expansion stepping using periodic playback checkpoints
 - Optional eight-directional movement with octile distance and explicit corner rules
 - Export/import for deterministic board fixtures
-- A metrics-only mode that omits the event log for larger benchmark sweeps
-
+- Web Worker execution for worst-case benchmark grids

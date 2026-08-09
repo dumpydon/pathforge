@@ -8,13 +8,14 @@ interface NodeInspectorProps {
   grid: Grid;
   coordinate: Coordinate | null;
   node: PlaybackNode | undefined;
+  playbackEnabled: boolean;
 }
 
 function formatCoordinate(coordinate: Coordinate | null): string {
   return coordinate ? `(${coordinate.row}, ${coordinate.col})` : "—";
 }
 
-export function NodeInspector({ algorithm, grid, coordinate, node }: NodeInspectorProps) {
+export function NodeInspector({ algorithm, grid, coordinate, node, playbackEnabled }: NodeInspectorProps) {
   const terrain = coordinate ? terrainAt(grid, coordinate) : null;
   const cost = terrain && terrain !== "wall" ? terrainCost(terrain) : null;
 
@@ -31,7 +32,7 @@ export function NodeInspector({ algorithm, grid, coordinate, node }: NodeInspect
       {coordinate ? (
         <dl className="inspector-list">
           <div><dt>Terrain</dt><dd>{terrain}{cost !== null ? ` · cost ${cost}` : ""}</dd></div>
-          <div><dt>State</dt><dd>{node?.state ?? "unvisited"}</dd></div>
+          <div><dt>State</dt><dd>{node?.state ?? (playbackEnabled ? "unvisited" : "not recorded")}</dd></div>
           {algorithm === "bfs" && <div><dt>Level</dt><dd>{node?.level ?? "—"}</dd></div>}
           {(algorithm === "dijkstra" || algorithm === "astar") && (
             <div><dt>{algorithm === "astar" ? "g score" : "Distance"}</dt><dd>{node?.g ?? "—"}</dd></div>
@@ -48,4 +49,3 @@ export function NodeInspector({ algorithm, grid, coordinate, node }: NodeInspect
     </section>
   );
 }
-

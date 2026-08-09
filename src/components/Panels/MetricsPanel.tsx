@@ -3,6 +3,7 @@ import type { SearchResult } from "../../algorithms/types";
 interface MetricsPanelProps {
   result: SearchResult | null;
   frontierSize: number;
+  playbackEnabled: boolean;
 }
 
 function formatRuntime(milliseconds: number): string {
@@ -11,7 +12,7 @@ function formatRuntime(milliseconds: number): string {
   return `${milliseconds.toFixed(1)} ms`;
 }
 
-export function MetricsPanel({ result, frontierSize }: MetricsPanelProps) {
+export function MetricsPanel({ result, frontierSize, playbackEnabled }: MetricsPanelProps) {
   return (
     <section className="panel-section metrics-panel">
       <div className="section-heading compact-heading">
@@ -38,10 +39,12 @@ export function MetricsPanel({ result, frontierSize }: MetricsPanelProps) {
       ) : (
         <p className="empty-copy">Run an algorithm to populate structural metrics.</p>
       )}
-      <div className="live-frontier"><span>Playback frontier</span><strong>{frontierSize}</strong></div>
+      <div className="live-frontier">
+        <span>{playbackEnabled ? "Playback frontier" : "Playback events"}</span>
+        <strong>{playbackEnabled ? frontierSize : "Not recorded"}</strong>
+      </div>
     </section>
   );
 }
 
 export { formatRuntime };
-

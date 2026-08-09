@@ -26,17 +26,19 @@ The grid is an implicit graph. `getNeighbors` derives traversable adjacent coord
 
 The cost of an edge is the terrain cost of the destination cell. The start therefore contributes zero to a path's accumulated cost.
 
+Rows and columns are constrained to integers from 5 through 300. Default endpoints share the middle row and use a 15% horizontal inset, which preserves the original 21 × 39 placement while remaining valid at the minimum dimensions.
+
 ## Architecture
 
 ```text
 Domain grid
    │
-   ├── search(grid, options) ──> SearchResult + event log
-   │                                  │
-   │                                  ├── metrics/comparison
-   │                                  └── playback reducer
-   │                                           │
-   └── React editing UI <──────────────────────┘
+   ├── search(grid, { recordEvents }) ──> SearchResult
+   │                                         │
+   │                                         ├── metrics/comparison
+   │                                         ├── event log → playback reducer
+   │                                         └── final path → canvas overview
+   └── React editing UI <───────────────────────────────┘
 ```
 
 The algorithm modules have no React, timers, DOM calls, CSS concepts, or animation delays. Maze generation is a separate concern and returns another valid `Grid`.
@@ -58,11 +60,14 @@ interface SearchResult {
   expandedCount: number;
   maxFrontierSize: number;
   executionTimeMs: number;
+  eventRecordingEnabled: boolean;
   events: SearchEvent[];
 }
 ```
 
 `pathCost` is `null` when no path exists so failure is not confused with a zero-cost path. `pathLength` counts edges. `executionTimeMs` includes the pure search, path reconstruction, metric calculation, and event construction; it excludes playback and React rendering.
+
+`SearchOptions.recordEvents` defaults to `true`. Each event write is guarded before constructing the event object, and `finishSearch` skips path events when recording is off. The result shape stays stable (`events` is empty and `eventRecordingEnabled` is false), so correctness and metrics do not need separate benchmark implementations.
 
 ## SearchEvent model
 
@@ -86,9 +91,11 @@ Automatic playback batches events according to the speed setting. Pause stops cu
 
 Previous-step support is not included. A future implementation can store checkpoints every N expansion groups and replay from the nearest checkpoint, avoiding a full snapshot per event.
 
+Playback is enabled only through 10,000 vertices. The current interactive grid renders one accessible button per cell, so continuing that representation to 90,000 cells would make DOM work expensive even without animation. Larger grids use a single canvas for terrain, endpoints, and the final path; node clicks still map to coordinates, but painting and event inspection are disabled.
+
 ## Comparison mechanism
 
-`Run all` calls each pure algorithm synchronously against the same `Grid` reference before playback begins. The four `SearchResult` objects populate the table and retain their event logs. Replaying a row only selects its existing result.
+`Run all` calls each pure algorithm synchronously against the same `Grid` reference before playback begins. Interactive runs retain four event logs for replay. Benchmark runs pass `recordEvents: false`; selecting a table row changes the result shown on the canvas without replaying events.
 
 The comparison table states each objective:
 
@@ -135,9 +142,10 @@ Diagonal movement was left out because adding it correctly requires a diagonal m
 
 ## Engineering tradeoffs
 
-- Event recording uses memory proportional to search operations. The benefit is deterministic replay and strict separation from animation.
-- A pure metrics-only runner could omit events, but one result shape is easier to reason about at this project size.
-- Comparison stores four event logs so any row can be replayed without rerunning. This is acceptable for the current grid sizes.
+- Event recording uses memory proportional to search operations. The benefit is deterministic replay and strict separation from animation; benchmark mode pays none of that per-operation allocation cost.
+- A stable result shape is used in both modes. An empty event array is simpler than a second algorithm/result hierarchy and costs one allocation per run rather than one per operation.
+- Comparison stores four event logs only when the board is interactive. Benchmark comparison stores the same metrics and paths with empty logs.
 - Search events store coordinates rather than internal numeric indices. That costs some allocation but keeps the engine boundary readable and serializable.
 - Browser timings are displayed because they are useful for rough observation, but the UI and documentation emphasize structural metrics.
-
+- The visualization threshold is implementation-specific rather than an algorithm limit. If the interactive renderer moves to canvas or virtualization later, the threshold can change without touching search correctness.
+- Resize replaces board, result, comparison, and selection state in one pure transition. Algorithm, heuristic, paint tool, and speed live outside that session and therefore survive a resize.

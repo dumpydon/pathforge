@@ -30,11 +30,10 @@ describe("BFS", () => {
   });
 
   it("handles start equal to target", () => {
-    const grid = createGrid(1, 1, { row: 0, col: 0 }, { row: 0, col: 0 });
+    const grid = createGrid(5, 5, { row: 2, col: 2 }, { row: 2, col: 2 });
     const result = bfs(grid);
     expect(result.found).toBe(true);
     expect(result.pathLength).toBe(0);
     expect(result.pathCost).toBe(0);
   });
 });
-

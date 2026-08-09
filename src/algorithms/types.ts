@@ -54,12 +54,13 @@ export interface SearchResult {
   expandedCount: number;
   maxFrontierSize: number;
   executionTimeMs: number;
+  eventRecordingEnabled: boolean;
   events: SearchEvent[];
 }
 
 export interface SearchOptions {
   heuristic?: HeuristicName;
+  recordEvents?: boolean;
 }
 
 export type SearchAlgorithm = (grid: Grid, options?: SearchOptions) => SearchResult;
-

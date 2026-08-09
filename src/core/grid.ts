@@ -4,26 +4,36 @@ import {
   type Grid,
   type Terrain,
 } from "./types";
+import {
+  assertSupportedGridDimensions,
+  DEFAULT_GRID_COLS,
+  DEFAULT_GRID_ROWS,
+} from "./gridDimensions";
 
-const DEFAULT_ROWS = 21;
-const DEFAULT_COLS = 39;
+function defaultEndpoints(rows: number, cols: number): [Coordinate, Coordinate] {
+  const row = Math.floor(rows / 2);
+  const inset = Math.max(1, Math.floor(cols * 0.15));
+  return [
+    { row, col: inset },
+    { row, col: cols - 1 - inset },
+  ];
+}
 
 export function createGrid(
-  rows = DEFAULT_ROWS,
-  cols = DEFAULT_COLS,
-  start: Coordinate = { row: Math.floor(rows / 2), col: 5 },
-  target: Coordinate = { row: Math.floor(rows / 2), col: cols - 6 },
+  rows = DEFAULT_GRID_ROWS,
+  cols = DEFAULT_GRID_COLS,
+  start?: Coordinate,
+  target?: Coordinate,
 ): Grid {
-  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows <= 0 || cols <= 0) {
-    throw new Error("Grid dimensions must be positive integers.");
-  }
+  assertSupportedGridDimensions(rows, cols);
+  const [defaultStart, defaultTarget] = defaultEndpoints(rows, cols);
 
   const grid: Grid = {
     rows,
     cols,
     terrain: Array<Terrain>(rows * cols).fill("normal"),
-    start,
-    target,
+    start: start ?? defaultStart,
+    target: target ?? defaultTarget,
   };
 
   assertValidGrid(grid);
@@ -118,4 +128,3 @@ export function moveEndpoint(grid: Grid, endpoint: "start" | "target", coordinat
 export function clearTerrain(grid: Grid): Grid {
   return { ...grid, terrain: Array<Terrain>(grid.rows * grid.cols).fill("normal") };
 }
-

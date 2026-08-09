@@ -6,6 +6,7 @@ interface ComparisonPanelProps {
   results: Partial<Record<AlgorithmId, SearchResult>>;
   activeAlgorithm: AlgorithmId;
   hasWeightedTerrain: boolean;
+  playbackEnabled: boolean;
   onReplay: (algorithm: AlgorithmId) => void;
 }
 
@@ -13,6 +14,7 @@ export function ComparisonPanel({
   results,
   activeAlgorithm,
   hasWeightedTerrain,
+  playbackEnabled,
   onReplay,
 }: ComparisonPanelProps) {
   const hasResults = Object.keys(results).length > 0;
@@ -72,7 +74,7 @@ export function ComparisonPanel({
                       disabled={!result}
                       onClick={() => onReplay(algorithm)}
                     >
-                      Replay
+                      {playbackEnabled ? "Replay" : "Inspect"}
                     </button>
                   </td>
                 </tr>
@@ -85,4 +87,3 @@ export function ComparisonPanel({
     </section>
   );
 }
-

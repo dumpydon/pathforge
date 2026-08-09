@@ -15,13 +15,12 @@ export function runAlgorithm(
 ): SearchResult {
   switch (algorithm) {
     case "bfs":
-      return bfs(grid);
+      return bfs(grid, options);
     case "dfs":
-      return dfs(grid);
+      return dfs(grid, options);
     case "dijkstra":
-      return dijkstra(grid);
+      return dijkstra(grid, options);
     case "astar":
       return astar(grid, options);
   }
 }
-

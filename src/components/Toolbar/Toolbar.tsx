@@ -4,6 +4,7 @@ import type { AlgorithmId, HeuristicName } from "../../algorithms/types";
 import { ALGORITHM_INFO, ALGORITHM_ORDER } from "../../data/algorithmInfo";
 import type { PresetId } from "../../mazes/presets";
 import type { PaintTool } from "../Grid/GridBoard";
+import { GridSizeControls } from "./GridSizeControls";
 
 interface ToolbarProps {
   algorithm: AlgorithmId;
@@ -11,6 +12,10 @@ interface ToolbarProps {
   paintTool: PaintTool;
   isPlaying: boolean;
   hasResult: boolean;
+  playbackEnabled: boolean;
+  editingEnabled: boolean;
+  rows: number;
+  cols: number;
   speed: number;
   onAlgorithmChange: (algorithm: AlgorithmId) => void;
   onHeuristicChange: (heuristic: HeuristicName) => void;
@@ -26,6 +31,7 @@ interface ToolbarProps {
   onRandom: () => void;
   onRecursiveDivision: () => void;
   onSpeedChange: (speed: number) => void;
+  onResize: (rows: number, cols: number) => void;
 }
 
 const TOOLS: Array<{ id: PaintTool; label: string; swatch: string }> = [
@@ -77,11 +83,11 @@ export function Toolbar(props: ToolbarProps) {
             type="button"
             className="button"
             onClick={props.isPlaying ? props.onPause : props.onResume}
-            disabled={!props.hasResult && !props.isPlaying}
+            disabled={!props.playbackEnabled || (!props.hasResult && !props.isPlaying)}
           >
             {props.isPlaying ? "Pause" : "Resume"}
           </button>
-          <button type="button" className="button" onClick={props.onStep}>
+          <button type="button" className="button" onClick={props.onStep} disabled={!props.playbackEnabled}>
             Step
           </button>
           <button type="button" className="button" onClick={props.onReset}>
@@ -98,6 +104,7 @@ export function Toolbar(props: ToolbarProps) {
             value={props.speed}
             onChange={(event) => props.onSpeedChange(Number(event.target.value))}
             aria-label="Playback speed"
+            disabled={!props.playbackEnabled}
           />
         </label>
       </div>
@@ -112,6 +119,7 @@ export function Toolbar(props: ToolbarProps) {
                 type="button"
                 className={props.paintTool === tool.id ? "is-active" : ""}
                 aria-pressed={props.paintTool === tool.id}
+                disabled={!props.editingEnabled}
                 onClick={() => props.onPaintToolChange(tool.id)}
               >
                 <span aria-hidden="true">{tool.swatch}</span>{tool.label}
@@ -134,6 +142,13 @@ export function Toolbar(props: ToolbarProps) {
             <option value="no-path">No Path</option>
           </select>
         </label>
+
+        <GridSizeControls
+          key={`${props.rows}:${props.cols}`}
+          rows={props.rows}
+          cols={props.cols}
+          onResize={props.onResize}
+        />
 
         <div className="maze-actions">
           <button type="button" className="text-button" onClick={props.onRandom}>Random obstacles</button>

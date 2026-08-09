@@ -4,7 +4,7 @@ import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { MinHeap } from "../structures/MinHeap";
 import { finishSearch } from "./shared";
-import type { SearchEvent, SearchResult } from "./types";
+import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 
 interface HeapEntry {
   index: number;
@@ -12,8 +12,9 @@ interface HeapEntry {
   sequence: number;
 }
 
-export function dijkstra(grid: Grid): SearchResult {
+export function dijkstra(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
+  const recordEvents = options.recordEvents ?? true;
   const startedAt = performance.now();
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -33,7 +34,7 @@ export function dijkstra(grid: Grid): SearchResult {
 
   distances[startIndex] = 0;
   frontier.push({ index: startIndex, distance: 0, sequence: sequence++ });
-  events.push({
+  if (recordEvents) events.push({
     type: "discovered",
     coordinate: grid.start,
     frontierSize: 1,
@@ -51,7 +52,7 @@ export function dijkstra(grid: Grid): SearchResult {
     const coordinate = fromIndex(grid, current);
     open.delete(current);
     expandedCount += 1;
-    events.push({
+    if (recordEvents) events.push({
       type: "expanded",
       coordinate,
       frontierSize: open.size,
@@ -65,7 +66,7 @@ export function dijkstra(grid: Grid): SearchResult {
     closed.add(current);
     if (current === targetIndex) {
       found = true;
-      events.push({ type: "closed", coordinate, frontierSize: open.size });
+      if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: open.size });
       break;
     }
 
@@ -85,7 +86,7 @@ export function dijkstra(grid: Grid): SearchResult {
 
       if (firstDiscovery) {
         discoveredCount += 1;
-        events.push({
+        if (recordEvents) events.push({
           type: "discovered",
           coordinate: nextCoordinate,
           frontierSize: open.size,
@@ -97,7 +98,7 @@ export function dijkstra(grid: Grid): SearchResult {
         });
       }
 
-      events.push({
+      if (recordEvents) events.push({
         type: "relaxed",
         coordinate: nextCoordinate,
         from: coordinate,
@@ -108,7 +109,7 @@ export function dijkstra(grid: Grid): SearchResult {
       maxFrontierSize = Math.max(maxFrontierSize, open.size);
     }
 
-    events.push({ type: "closed", coordinate, frontierSize: open.size });
+    if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: open.size });
   }
 
   const path = found ? reconstructPath(grid, parents, targetIndex) : [];
@@ -122,7 +123,7 @@ export function dijkstra(grid: Grid): SearchResult {
     expandedCount,
     maxFrontierSize,
     events,
+    recordEvents,
     startedAt,
   });
 }
-

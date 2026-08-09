@@ -3,10 +3,11 @@ import { getNeighborIndices } from "../core/neighbors";
 import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { finishSearch } from "./shared";
-import type { SearchEvent, SearchResult } from "./types";
+import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 
-export function dfs(grid: Grid): SearchResult {
+export function dfs(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
+  const recordEvents = options.recordEvents ?? true;
   const startedAt = performance.now();
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -19,7 +20,7 @@ export function dfs(grid: Grid): SearchResult {
   let maxFrontierSize = 1;
   let found = false;
 
-  events.push({
+  if (recordEvents) events.push({
     type: "discovered",
     coordinate: grid.start,
     frontierSize: 1,
@@ -31,7 +32,7 @@ export function dfs(grid: Grid): SearchResult {
     const coordinate = fromIndex(grid, current);
     expandedCount += 1;
 
-    events.push({
+    if (recordEvents) events.push({
       type: "expanded",
       coordinate,
       frontierSize: stack.length,
@@ -43,7 +44,7 @@ export function dfs(grid: Grid): SearchResult {
 
     if (current === targetIndex) {
       found = true;
-      events.push({ type: "closed", coordinate, frontierSize: stack.length });
+      if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: stack.length });
       break;
     }
 
@@ -59,7 +60,7 @@ export function dfs(grid: Grid): SearchResult {
       discoveredCount += 1;
       maxFrontierSize = Math.max(maxFrontierSize, stack.length);
 
-      events.push({
+      if (recordEvents) events.push({
         type: "discovered",
         coordinate: fromIndex(grid, neighbor),
         frontierSize: stack.length,
@@ -67,7 +68,7 @@ export function dfs(grid: Grid): SearchResult {
       });
     }
 
-    events.push({ type: "closed", coordinate, frontierSize: stack.length });
+    if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: stack.length });
   }
 
   const path = found ? reconstructPath(grid, parents, targetIndex) : [];
@@ -80,7 +81,7 @@ export function dfs(grid: Grid): SearchResult {
     expandedCount,
     maxFrontierSize,
     events,
+    recordEvents,
     startedAt,
   });
 }
-

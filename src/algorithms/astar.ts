@@ -5,7 +5,7 @@ import type { Grid } from "../core/types";
 import { MinHeap } from "../structures/MinHeap";
 import { getHeuristic } from "./heuristics";
 import { finishSearch } from "./shared";
-import type { HeuristicName, SearchEvent, SearchResult } from "./types";
+import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 
 interface HeapEntry {
   index: number;
@@ -15,8 +15,9 @@ interface HeapEntry {
   sequence: number;
 }
 
-export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): SearchResult {
+export function astar(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
+  const recordEvents = options.recordEvents ?? true;
   const startedAt = performance.now();
   const heuristicName = options.heuristic ?? "manhattan";
   const heuristic = getHeuristic(heuristicName);
@@ -41,7 +42,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
   const startH = heuristic(grid.start, grid.target);
   gScores[startIndex] = 0;
   frontier.push({ index: startIndex, g: 0, h: startH, f: startH, sequence: sequence++ });
-  events.push({
+  if (recordEvents) events.push({
     type: "discovered",
     coordinate: grid.start,
     frontierSize: 1,
@@ -58,7 +59,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
     const coordinate = fromIndex(grid, current);
     open.delete(current);
     expandedCount += 1;
-    events.push({
+    if (recordEvents) events.push({
       type: "expanded",
       coordinate,
       frontierSize: open.size,
@@ -74,7 +75,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
     closed.add(current);
     if (current === targetIndex) {
       found = true;
-      events.push({ type: "closed", coordinate, frontierSize: open.size });
+      if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: open.size });
       break;
     }
 
@@ -103,7 +104,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
 
       if (firstDiscovery) {
         discoveredCount += 1;
-        events.push({
+        if (recordEvents) events.push({
           type: "discovered",
           coordinate: nextCoordinate,
           frontierSize: open.size,
@@ -117,7 +118,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
         });
       }
 
-      events.push({
+      if (recordEvents) events.push({
         type: "relaxed",
         coordinate: nextCoordinate,
         from: coordinate,
@@ -128,7 +129,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
       maxFrontierSize = Math.max(maxFrontierSize, open.size);
     }
 
-    events.push({ type: "closed", coordinate, frontierSize: open.size });
+    if (recordEvents) events.push({ type: "closed", coordinate, frontierSize: open.size });
   }
 
   const path = found ? reconstructPath(grid, parents, targetIndex) : [];
@@ -142,6 +143,7 @@ export function astar(grid: Grid, options: { heuristic?: HeuristicName } = {}): 
     expandedCount,
     maxFrontierSize,
     events,
+    recordEvents,
     startedAt,
   });
 }

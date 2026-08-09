@@ -11,6 +11,7 @@ interface ResultParts {
   expandedCount: number;
   maxFrontierSize: number;
   events: SearchEvent[];
+  recordEvents: boolean;
   startedAt: number;
   knownPathCost?: number;
 }
@@ -20,7 +21,7 @@ export function finishSearch(parts: ResultParts): SearchResult {
     ? (parts.knownPathCost ?? calculatePathCost(parts.grid, parts.path))
     : null;
 
-  if (parts.found) {
+  if (parts.found && parts.recordEvents) {
     parts.path.forEach((coordinate, pathIndex) => {
       parts.events.push({
         type: "path",
@@ -42,7 +43,7 @@ export function finishSearch(parts: ResultParts): SearchResult {
     expandedCount: parts.expandedCount,
     maxFrontierSize: parts.maxFrontierSize,
     executionTimeMs: performance.now() - parts.startedAt,
+    eventRecordingEnabled: parts.recordEvents,
     events: parts.events,
   };
 }
-

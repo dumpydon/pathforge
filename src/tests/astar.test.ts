@@ -35,9 +35,9 @@ describe("A*", () => {
   });
 
   it("handles start equal to target", () => {
-    const grid = createGrid(1, 1, { row: 0, col: 0 }, { row: 0, col: 0 });
+    const grid = createGrid(5, 5, { row: 2, col: 2 }, { row: 2, col: 2 });
     const result = astar(grid);
-    expect(result.path).toEqual([{ row: 0, col: 0 }]);
+    expect(result.path).toEqual([{ row: 2, col: 2 }]);
     expect(result.pathCost).toBe(0);
   });
 });
