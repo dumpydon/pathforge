@@ -343,6 +343,30 @@ a {
   color: var(--text);
 }
 
+.random-obstacles-button,
+.random-obstacles-button:hover {
+  color: var(--pathforge-orange);
+  background-image: linear-gradient(
+    45deg,
+    var(--pathforge-orange-deep),
+    var(--pathforge-orange),
+    var(--pathforge-highlight),
+    var(--pathforge-orange-deep)
+  );
+  background-size: 400% 400%;
+  background-position: 0% 50%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 650;
+  text-shadow: 0 0 12px rgba(255, 107, 53, 0.28);
+  animation: pathforge-flame-gradient 3s ease-in-out infinite;
+}
+
+.random-obstacles-button:hover {
+  text-shadow: 0 0 16px rgba(255, 107, 53, 0.4);
+}
+
 .text-button.danger:hover {
   color: #ff7b72;
 }
@@ -1179,7 +1203,8 @@ kbd {
     transition: none;
   }
 
-  .pathforge-wordmark {
+  .pathforge-wordmark,
+  .random-obstacles-button {
     background-position: 45% 50%;
     animation: none;
   }
