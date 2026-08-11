@@ -1,7 +1,7 @@
 # PathForge
-Interactive graph-search laboratory for exploring, visualizing, and comparing
+i made an interactive graph-search visualization laboratory for exploring, visualizing, and comparing
 
-BFS, DFS, Dijkstra, and A*.
+BFS, DFS, Dijkstra, and A* and other graph path finding algos.
 
 **[Live Demo](https://pathforge.dumpydon.workers.dev)**
 
