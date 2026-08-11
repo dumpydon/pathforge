@@ -9,7 +9,7 @@ PathForge is an interactive graph-search laboratory for visualizing and comparin
 
 The algorithms run independently from React. Interactive runs produce a typed event log that the playback layer consumes later; large-grid benchmark runs use the same algorithms without recording events.
 
-![PathForge running A* on the Weighted Detour scenario](docs/pathforge.png)
+![PathForge running A* on the Weighted Detour scenario](docs/astar.png)
 
 ## Why I built it
 
