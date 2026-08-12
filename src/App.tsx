@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { runAlgorithm } from "./algorithms";
 import type { AlgorithmId, HeuristicName } from "./algorithms/types";
 import { BenchmarkGrid } from "./components/Grid/BenchmarkGrid";
@@ -25,19 +25,25 @@ import {
   type ComparisonResults,
 } from "./state/boardSession";
 
-const INITIAL_OBSTACLE_SEED = 0x50415448;
-
 export default function App() {
   const [session, setSession] = useState(() =>
-    createBoardSession(
-      // A stable seed keeps the server and client renders identical during hydration.
-      randomObstacles(openFieldPreset(), undefined, INITIAL_OBSTACLE_SEED),
-      "Random obstacles",
-    ),
+    createBoardSession(openFieldPreset(), "Random obstacles"),
   );
+  const [isInitialGridReady, setIsInitialGridReady] = useState(false);
+  const hasGeneratedInitialGrid = useRef(false);
   const [algorithm, setAlgorithm] = useState<AlgorithmId>("astar");
   const [heuristic, setHeuristic] = useState<HeuristicName>("manhattan");
   const [paintTool, setPaintTool] = useState<PaintTool>("wall");
+
+  useEffect(() => {
+    if (hasGeneratedInitialGrid.current) return;
+    hasGeneratedInitialGrid.current = true;
+
+    const initialGrid = randomObstacles(openFieldPreset());
+    setSession(createBoardSession(initialGrid, "Random obstacles"));
+    setIsInitialGridReady(true);
+  }, []);
+
   const { grid, activeResult, comparisonResults, selectedCoordinate, scenarioLabel } = session;
   const benchmarkMode = isBenchmarkGrid(grid);
   const playback = usePlayback(activeResult);
@@ -290,23 +296,28 @@ export default function App() {
               <span>Event playback and cell-level editing are disabled to avoid excessive rendering and event-history overhead.</span>
             </div>
           )}
-          {benchmarkMode ? (
-            <BenchmarkGrid
-              grid={grid}
-              result={activeResult}
-              selectedCoordinate={selectedCoordinate}
-              onInspect={inspectCoordinate}
-            />
-          ) : (
-            <GridBoard
-              grid={grid}
-              snapshot={playback.snapshot}
-              selectedCoordinate={selectedCoordinate}
-              onInspect={inspectCoordinate}
-              onPaint={paint}
-              onMoveEndpoint={moveGridEndpoint}
-            />
-          )}
+          <div
+            className={`initial-grid-stage${isInitialGridReady ? "" : " is-pending"}`}
+            aria-busy={!isInitialGridReady}
+          >
+            {benchmarkMode ? (
+              <BenchmarkGrid
+                grid={grid}
+                result={activeResult}
+                selectedCoordinate={selectedCoordinate}
+                onInspect={inspectCoordinate}
+              />
+            ) : (
+              <GridBoard
+                grid={grid}
+                snapshot={playback.snapshot}
+                selectedCoordinate={selectedCoordinate}
+                onInspect={inspectCoordinate}
+                onPaint={paint}
+                onMoveEndpoint={moveGridEndpoint}
+              />
+            )}
+          </div>
           <div className="workspace-note">
             <span>{benchmarkMode
               ? "Canvas overview shows terrain, endpoints, and the final path. Use generators to create large benchmark maps."
