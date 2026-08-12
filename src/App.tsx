@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { runAlgorithm } from "./algorithms";
 import type { AlgorithmId, HeuristicName } from "./algorithms/types";
+import { PathForgeLogo } from "./components/Brand/PathForgeLogo";
 import { BenchmarkGrid } from "./components/Grid/BenchmarkGrid";
 import { GridBoard, type PaintTool } from "./components/Grid/GridBoard";
 import { AlgorithmPanel } from "./components/Panels/AlgorithmPanel";
@@ -231,7 +232,7 @@ export default function App() {
     <main className="app-shell">
       <header className="topbar">
         <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">PF</span>
+          <PathForgeLogo />
           <div>
             <div className="brand-line">
               <h1 className="pathforge-wordmark">PathForge</h1>
