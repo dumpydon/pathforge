@@ -37,7 +37,14 @@ export function replaceBoard(
   };
 }
 
+export function resetBoardSearch(session: BoardSession): BoardSession {
+  return {
+    ...session,
+    activeResult: null,
+    comparisonResults: {},
+  };
+}
+
 export function resizeBoard(session: BoardSession, rows: number, cols: number): BoardSession {
   return replaceBoard(session, createGrid(rows, cols), `Custom · ${rows} × ${cols}`);
 }
-

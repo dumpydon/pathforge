@@ -1,5 +1,5 @@
-import { assertValidGrid, fromIndex, toIndex, traversalCost } from "../core/grid";
-import { getNeighborIndices } from "../core/neighbors";
+import { assertValidGrid, fromIndex, toIndex } from "../core/grid";
+import { getNeighbors, resolveMovementOptions } from "../core/neighbors";
 import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { MinHeap } from "../structures/MinHeap";
@@ -15,6 +15,7 @@ interface HeapEntry {
 export function dijkstra(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
   const recordEvents = options.recordEvents ?? true;
+  const movement = resolveMovementOptions(options);
   const startedAt = performance.now();
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -70,25 +71,26 @@ export function dijkstra(grid: Grid, options: SearchOptions = {}): SearchResult 
       break;
     }
 
-    for (const neighbor of getNeighborIndices(grid, current)) {
-      if (closed.has(neighbor)) continue;
+    for (const neighbor of getNeighbors(grid, coordinate, movement)) {
+      if (closed.has(neighbor.index)) continue;
 
-      const nextCoordinate = fromIndex(grid, neighbor);
-      const candidateDistance = distances[current] + traversalCost(grid, nextCoordinate);
-      if (candidateDistance >= distances[neighbor]) continue;
+      const candidateDistance = distances[current] + neighbor.cost;
+      if (candidateDistance >= distances[neighbor.index]) continue;
 
-      const previousDistance = Number.isFinite(distances[neighbor]) ? distances[neighbor] : null;
+      const previousDistance = Number.isFinite(distances[neighbor.index])
+        ? distances[neighbor.index]
+        : null;
       const firstDiscovery = previousDistance === null;
-      distances[neighbor] = candidateDistance;
-      parents.set(neighbor, current);
-      frontier.push({ index: neighbor, distance: candidateDistance, sequence: sequence++ });
-      open.add(neighbor);
+      distances[neighbor.index] = candidateDistance;
+      parents.set(neighbor.index, current);
+      frontier.push({ index: neighbor.index, distance: candidateDistance, sequence: sequence++ });
+      open.add(neighbor.index);
 
       if (firstDiscovery) {
         discoveredCount += 1;
         if (recordEvents) events.push({
           type: "discovered",
-          coordinate: nextCoordinate,
+          coordinate: neighbor.coordinate,
           frontierSize: open.size,
           values: {
             parent: coordinate,
@@ -100,7 +102,7 @@ export function dijkstra(grid: Grid, options: SearchOptions = {}): SearchResult 
 
       if (recordEvents) events.push({
         type: "relaxed",
-        coordinate: nextCoordinate,
+        coordinate: neighbor.coordinate,
         from: coordinate,
         previousCost: previousDistance,
         frontierSize: open.size,
@@ -125,5 +127,6 @@ export function dijkstra(grid: Grid, options: SearchOptions = {}): SearchResult 
     events,
     recordEvents,
     startedAt,
+    movement,
   });
 }

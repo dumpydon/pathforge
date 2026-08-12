@@ -12,6 +12,13 @@ function formatRuntime(milliseconds: number): string {
   return `${milliseconds.toFixed(1)} ms`;
 }
 
+function formatPathCost(cost: number | null): string {
+  if (cost === null) return "—";
+  const nearestInteger = Math.round(cost);
+  if (Math.abs(cost - nearestInteger) < 1e-9) return String(nearestInteger);
+  return cost.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 export function MetricsPanel({ result, frontierSize, playbackEnabled }: MetricsPanelProps) {
   return (
     <section className="panel-section metrics-panel">
@@ -26,7 +33,7 @@ export function MetricsPanel({ result, frontierSize, playbackEnabled }: MetricsP
 
       {result ? (
         <dl className="metric-grid">
-          <div><dt>Path cost</dt><dd>{result.pathCost ?? "—"}</dd></div>
+          <div><dt>Path cost</dt><dd>{formatPathCost(result.pathCost)}</dd></div>
           <div><dt>Path steps</dt><dd>{result.found ? result.pathLength : "—"}</dd></div>
           <div><dt>Discovered</dt><dd>{result.discoveredCount}</dd></div>
           <div><dt>Expanded</dt><dd>{result.expandedCount}</dd></div>
@@ -44,4 +51,4 @@ export function MetricsPanel({ result, frontierSize, playbackEnabled }: MetricsP
   );
 }
 
-export { formatRuntime };
+export { formatPathCost, formatRuntime };

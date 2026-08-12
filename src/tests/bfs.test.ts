@@ -22,6 +22,14 @@ describe("BFS", () => {
     expect(validatePath(grid, result.path)).toBe(true);
   });
 
+  it("uses diagonal topology in eight-way mode", () => {
+    const grid = gridFromRows(["S..", "...", "..T"]);
+    const result = bfs(grid, { movementMode: "eight-way" });
+
+    expect(result.pathLength).toBe(2);
+    expect(validatePath(grid, result.path, { movementMode: "eight-way" })).toBe(true);
+  });
+
   it("reports an unreachable target", () => {
     const result = bfs(gridFromRows(["S#T", ".#."]));
     expect(result.found).toBe(false);

@@ -27,7 +27,8 @@ The repository is also structured so the algorithm code can be discussed and tes
 - Generate random-obstacle boards or recursive-division mazes.
 - Resize the board from 5 × 5 through 300 × 300, with Small, Default, Large, and Stress presets.
 - Switch automatically to metrics-only benchmark mode above 10,000 vertices.
-- Use Manhattan or Euclidean distance with A*.
+- Switch between four-way and eight-way movement without changing the board.
+- Use Manhattan or Euclidean distance in four-way A*, and Octile or Euclidean distance in eight-way A*.
 - Use keyboard shortcuts: `Space` run/pause, `S` step, `R` reset search, and `C` clear board.
 
 ## Algorithms
@@ -41,7 +42,7 @@ All graph-search implementations and their data structures live in this reposito
 | Dijkstra | Binary min heap | `O((V + E) log V)` | Minimum cost for non-negative weights |
 | A* | Binary min heap | Worst case `O((V + E) log V)` here | Minimum cost with the provided admissible heuristics |
 
-DFS pushes neighbors in reverse of the shared `up, right, down, left` order so the stack expands them deterministically. Dijkstra and A* use duplicate heap insertion instead of decrease-key; stale entries are discarded when popped.
+All algorithms consume the same deterministic movement model. Four-way mode uses `up, right, down, left`; eight-way mode adds diagonals with corner cutting disabled. DFS reverses the returned order when pushing so expansion remains deterministic. Dijkstra and A* use duplicate heap insertion instead of decrease-key; stale entries are discarded when popped.
 
 ## Comparing results
 
@@ -54,7 +55,7 @@ DFS pushes neighbors in reverse of the shared `up, right, down, left` order so t
 - maximum logical frontier size
 - pure execution time
 
-BFS optimizes the number of edges, DFS does not optimize the returned path, and Dijkstra/A* optimize accumulated terrain cost. PathForge still reports the actual terrain cost of BFS/DFS paths, but labels their objectives separately and shows a warning when weighted terrain is present.
+BFS optimizes the number of edges, DFS does not optimize the returned path, and Dijkstra/A* optimize accumulated movement cost. PathForge still reports the actual movement cost of BFS/DFS paths, but labels their objectives separately and shows a warning when weighted terrain is present.
 
 ## Architecture
 
@@ -94,21 +95,21 @@ Boards with at most 10,000 vertices use the existing button-based editor and eve
 
 ## A* heuristics
 
-PathForge uses four-directional movement and charges the cost of entering the destination cell. Every traversable terrain cost is at least 1.
+PathForge supports four-way and eight-way movement. Orthogonal distance is 1; diagonal distance is `sqrt(2)`. A weighted edge costs `movement distance × destination terrain cost`, and every traversable terrain cost is at least 1.
 
 ```text
 f(n) = g(n) + h(n)
 ```
 
-- `g` is the accumulated terrain cost from the start.
-- `h` is Manhattan or Euclidean distance to the target.
+- `g` is the accumulated movement cost from the start.
+- `h` is a movement-compatible estimate to the target.
 - `f` is the heap priority.
 
-With four-directional unit-distance moves and minimum terrain cost 1, both provided heuristics are admissible and consistent. The test suite also runs A* with `h(n) = 0` and verifies that its optimal cost matches Dijkstra.
+Manhattan is available in four-way mode; Octile is available in eight-way mode; Euclidean is admissible in both. Changing topology replaces an incompatible heuristic with the appropriate default. The test suite also runs A* with `h(n) = 0` and verifies that its optimal cost matches Dijkstra.
 
 ## Weighted-grid behavior
 
-Normal terrain costs 1, mud costs 3, water costs 5, and walls are impassable. A path's cost excludes the start and includes every cell entered afterward.
+Normal terrain costs 1, mud costs 3, water costs 5, and walls are impassable. A path's cost excludes the start and includes each entered cell multiplied by the step distance. Diagonal movement is allowed only when both adjacent orthogonal cells are traversable, preventing corner clipping.
 
 Negative costs cannot be represented by the terrain model and unknown terrain values fail validation. Dijkstra and A* minimize this accumulated cost. BFS and DFS use the same traversability graph but do not use the weight during frontier ordering.
 
@@ -167,7 +168,7 @@ docs/               repository screenshot
 
 ## Design decisions and tradeoffs
 
-- Four-directional movement keeps the initial heuristic contract precise and avoids hiding corner-cutting rules inside a UI toggle.
+- Movement topology, step distance, terrain multiplication, and corner policy are centralized so every algorithm searches the same implicit graph.
 - The heap intentionally has no decrease-key operation. Duplicate insertions keep the generic heap API small; algorithms reject stale entries on pop.
 - Maximum frontier size measures the logical open set, not stale heap entries. That makes the cross-algorithm metric describe pending nodes rather than an implementation artifact.
 - Interactive event logs increase memory use, but enable deterministic replay and keep timing/rendering out of the algorithms. Benchmark mode disables their construction entirely.
@@ -177,7 +178,6 @@ docs/               repository screenshot
 
 ## Limitations
 
-- Movement is four-directional; diagonal cost, octile distance, and corner-cutting rules are not implemented.
 - Cell-level painting and endpoint dragging are disabled in benchmark mode; generators still operate on the full grid.
 - Searches run synchronously on the main thread, so a worst-case 300 × 300 run can briefly occupy the UI thread even though it avoids event and DOM-cell overhead.
 - Runtime measurements are browser-local observations, not scientific benchmarks.
@@ -186,6 +186,6 @@ docs/               repository screenshot
 ## Potential future work
 
 - Previous-expansion stepping using periodic playback checkpoints
-- Optional eight-directional movement with octile distance and explicit corner rules
+- Optional user control for allowing corner cutting
 - Export/import for deterministic board fixtures
 - Web Worker execution for worst-case benchmark grids

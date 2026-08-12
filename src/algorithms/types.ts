@@ -1,7 +1,7 @@
-import type { Coordinate, Grid } from "../core/types";
+import type { Coordinate, CornerPolicy, Grid, MovementMode } from "../core/types";
 
 export type AlgorithmId = "bfs" | "dfs" | "dijkstra" | "astar";
-export type HeuristicName = "manhattan" | "euclidean" | "zero";
+export type HeuristicName = "manhattan" | "euclidean" | "octile" | "zero";
 
 export interface NodeSearchValues {
   parent: Coordinate | null;
@@ -54,12 +54,16 @@ export interface SearchResult {
   expandedCount: number;
   maxFrontierSize: number;
   executionTimeMs: number;
+  movementMode: MovementMode;
+  cornerPolicy: CornerPolicy;
   eventRecordingEnabled: boolean;
   events: SearchEvent[];
 }
 
 export interface SearchOptions {
   heuristic?: HeuristicName;
+  movementMode?: MovementMode;
+  cornerPolicy?: CornerPolicy;
   recordEvents?: boolean;
 }
 

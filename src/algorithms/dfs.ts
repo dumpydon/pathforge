@@ -1,5 +1,5 @@
 import { assertValidGrid, fromIndex, toIndex } from "../core/grid";
-import { getNeighborIndices } from "../core/neighbors";
+import { getNeighbors, resolveMovementOptions } from "../core/neighbors";
 import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { finishSearch } from "./shared";
@@ -8,6 +8,7 @@ import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 export function dfs(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
   const recordEvents = options.recordEvents ?? true;
+  const movement = resolveMovementOptions(options);
   const startedAt = performance.now();
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -48,21 +49,21 @@ export function dfs(grid: Grid, options: SearchOptions = {}): SearchResult {
       break;
     }
 
-    const neighbors = getNeighborIndices(grid, current);
+    const neighbors = getNeighbors(grid, coordinate, movement);
     // Reverse push order so the first deterministic neighbor is popped first.
     for (let index = neighbors.length - 1; index >= 0; index -= 1) {
       const neighbor = neighbors[index];
-      if (discovered.has(neighbor)) continue;
+      if (discovered.has(neighbor.index)) continue;
 
-      discovered.add(neighbor);
-      parents.set(neighbor, current);
-      stack.push(neighbor);
+      discovered.add(neighbor.index);
+      parents.set(neighbor.index, current);
+      stack.push(neighbor.index);
       discoveredCount += 1;
       maxFrontierSize = Math.max(maxFrontierSize, stack.length);
 
       if (recordEvents) events.push({
         type: "discovered",
-        coordinate: fromIndex(grid, neighbor),
+        coordinate: neighbor.coordinate,
         frontierSize: stack.length,
         values: { parent: coordinate, discoveryOrder: discoveredCount },
       });
@@ -83,5 +84,6 @@ export function dfs(grid: Grid, options: SearchOptions = {}): SearchResult {
     events,
     recordEvents,
     startedAt,
+    movement,
   });
 }

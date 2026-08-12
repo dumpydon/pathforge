@@ -1,12 +1,15 @@
 import type { AlgorithmId, HeuristicName } from "../../algorithms/types";
+import { HEURISTIC_LABELS } from "../../algorithms/heuristics";
+import type { MovementMode } from "../../core/types";
 import { ALGORITHM_INFO } from "../../data/algorithmInfo";
 
 interface AlgorithmPanelProps {
   algorithm: AlgorithmId;
   heuristic: HeuristicName;
+  movementMode: MovementMode;
 }
 
-export function AlgorithmPanel({ algorithm, heuristic }: AlgorithmPanelProps) {
+export function AlgorithmPanel({ algorithm, heuristic, movementMode }: AlgorithmPanelProps) {
   const info = ALGORITHM_INFO[algorithm];
 
   return (
@@ -24,9 +27,9 @@ export function AlgorithmPanel({ algorithm, heuristic }: AlgorithmPanelProps) {
       {algorithm === "astar" && (
         <div className="formula-block">
           <code>f(n) = g(n) + h(n)</code>
-          <span>{heuristic === "manhattan" ? "Manhattan" : "Euclidean"} · 4-way movement</span>
+          <span>{HEURISTIC_LABELS[heuristic]} · {movementMode} movement</span>
           <dl>
-            <div><dt>g</dt><dd>accumulated terrain cost</dd></div>
+            <div><dt>g</dt><dd>accumulated movement cost</dd></div>
             <div><dt>h</dt><dd>estimated remaining distance</dd></div>
             <div><dt>f</dt><dd>frontier priority</dd></div>
           </dl>
