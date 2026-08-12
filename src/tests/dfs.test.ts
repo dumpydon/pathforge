@@ -18,10 +18,17 @@ describe("DFS", () => {
     expect(result.expandedCount).toBeLessThanOrEqual(9);
   });
 
+  it("uses diagonal topology in eight-way mode", () => {
+    const grid = gridFromRows(["S#", ".T"]);
+    const result = dfs(grid, { movementMode: "eight-way" });
+
+    expect(result.found).toBe(true);
+    expect(validatePath(grid, result.path, { movementMode: "eight-way" })).toBe(true);
+  });
+
   it("reports an unreachable target", () => {
     const result = dfs(gridFromRows(["S#T", ".#."]));
     expect(result.found).toBe(false);
     expect(result.expandedCount).toBe(2);
   });
 });
-

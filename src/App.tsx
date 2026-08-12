@@ -1,8 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { runAlgorithm } from "./algorithms";
+import { runAlgorithm, runAllAlgorithms } from "./algorithms";
 import type { AlgorithmId, HeuristicName } from "./algorithms/types";
+import {
+  isHeuristicCompatible,
+  resolveHeuristicForMovement,
+} from "./algorithms/heuristics";
 import { PathForgeLogo } from "./components/Brand/PathForgeLogo";
 import { BenchmarkGrid } from "./components/Grid/BenchmarkGrid";
 import { GridBoard, type PaintTool } from "./components/Grid/GridBoard";
@@ -13,8 +17,14 @@ import { NodeInspector } from "./components/Panels/NodeInspector";
 import { Toolbar } from "./components/Toolbar/Toolbar";
 import { clearTerrain, moveEndpoint, setTerrain } from "./core/grid";
 import { isBenchmarkGrid } from "./core/gridDimensions";
-import { coordinateKey, type Coordinate, type Grid, type Terrain } from "./core/types";
-import { ALGORITHM_INFO, ALGORITHM_ORDER } from "./data/algorithmInfo";
+import {
+  coordinateKey,
+  type Coordinate,
+  type Grid,
+  type MovementMode,
+  type Terrain,
+} from "./core/types";
+import { ALGORITHM_INFO } from "./data/algorithmInfo";
 import { usePlayback } from "./hooks/usePlayback";
 import { randomObstacles } from "./mazes/random";
 import { PRESETS, openFieldPreset, type PresetId } from "./mazes/presets";
@@ -22,6 +32,7 @@ import { recursiveDivision } from "./mazes/recursiveDivision";
 import {
   createBoardSession,
   replaceBoard,
+  resetBoardSearch,
   resizeBoard,
   type ComparisonResults,
 } from "./state/boardSession";
@@ -34,6 +45,7 @@ export default function App() {
   const hasGeneratedInitialGrid = useRef(false);
   const [algorithm, setAlgorithm] = useState<AlgorithmId>("astar");
   const [heuristic, setHeuristic] = useState<HeuristicName>("manhattan");
+  const [movementMode, setMovementMode] = useState<MovementMode>("four-way");
   const [paintTool, setPaintTool] = useState<PaintTool>("wall");
 
   useEffect(() => {
@@ -82,10 +94,11 @@ export default function App() {
   const runSelected = useCallback(() => {
     const result = runAlgorithm(algorithm, grid, {
       heuristic,
+      movementMode,
       recordEvents: !benchmarkMode,
     });
     activateResult(result, true);
-  }, [activateResult, algorithm, benchmarkMode, grid, heuristic]);
+  }, [activateResult, algorithm, benchmarkMode, grid, heuristic, movementMode]);
 
   const step = useCallback(() => {
     if (benchmarkMode) return;
@@ -93,25 +106,27 @@ export default function App() {
       stepPlayback();
       return;
     }
-    const result = runAlgorithm(algorithm, grid, { heuristic, recordEvents: true });
+    const result = runAlgorithm(algorithm, grid, {
+      heuristic,
+      movementMode,
+      recordEvents: true,
+    });
     setSession((current) => ({ ...current, activeResult: result }));
     loadPlayback(result, false);
     stepPlayback();
-  }, [activeResult, algorithm, benchmarkMode, grid, heuristic, loadPlayback, stepPlayback]);
+  }, [activeResult, algorithm, benchmarkMode, grid, heuristic, loadPlayback, movementMode, stepPlayback]);
 
   const runAll = useCallback(() => {
-    const results: ComparisonResults = {};
-    for (const id of ALGORITHM_ORDER) {
-      results[id] = runAlgorithm(id, grid, {
-        heuristic,
-        recordEvents: !benchmarkMode,
-      });
-    }
+    const results: ComparisonResults = runAllAlgorithms(grid, {
+      heuristic,
+      movementMode,
+      recordEvents: !benchmarkMode,
+    });
     const selected = results[algorithm]!;
     setSession((current) => ({ ...current, comparisonResults: results, activeResult: selected }));
     if (benchmarkMode) resetPlayback();
     else loadPlayback(selected, false);
-  }, [algorithm, benchmarkMode, grid, heuristic, loadPlayback, resetPlayback]);
+  }, [algorithm, benchmarkMode, grid, heuristic, loadPlayback, movementMode, resetPlayback]);
 
   const replay = useCallback(
     (id: AlgorithmId) => {
@@ -130,6 +145,19 @@ export default function App() {
     },
     [clearSearch],
   );
+
+  const changeHeuristic = useCallback((nextHeuristic: HeuristicName) => {
+    if (isHeuristicCompatible(nextHeuristic, movementMode)) setHeuristic(nextHeuristic);
+  }, [movementMode]);
+
+  const changeMovementMode = useCallback((nextMovementMode: MovementMode) => {
+    if (nextMovementMode === movementMode) return;
+
+    resetPlayback();
+    setMovementMode(nextMovementMode);
+    setHeuristic((current) => resolveHeuristicForMovement(current, nextMovementMode));
+    setSession(resetBoardSearch);
+  }, [movementMode, resetPlayback]);
 
   const paint = useCallback(
     (coordinate: Coordinate) => {
@@ -242,8 +270,23 @@ export default function App() {
           </div>
         </div>
         <div className="topbar-context">
-          <span>4-way movement</span>
-          <span>non-negative weights</span>
+          <div className="movement-control" aria-label="Movement">
+            <span>Movement</span>
+            <div className="movement-toggle">
+              {(["four-way", "eight-way"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={movementMode === mode ? "is-active" : ""}
+                  aria-pressed={movementMode === mode}
+                  onClick={() => changeMovementMode(mode)}
+                >
+                  {mode === "four-way" ? "4-way" : "8-way"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <span className="topbar-meta">non-negative weights</span>
           <a href="#comparison">comparison</a>
         </div>
       </header>
@@ -251,6 +294,7 @@ export default function App() {
       <Toolbar
         algorithm={algorithm}
         heuristic={heuristic}
+        movementMode={movementMode}
         paintTool={paintTool}
         isPlaying={playback.isPlaying}
         hasResult={Boolean(activeResult)}
@@ -260,7 +304,7 @@ export default function App() {
         cols={grid.cols}
         speed={playback.speed}
         onAlgorithmChange={changeAlgorithm}
-        onHeuristicChange={setHeuristic}
+        onHeuristicChange={changeHeuristic}
         onPaintToolChange={setPaintTool}
         onRun={runSelected}
         onPause={pausePlayback}
@@ -330,7 +374,11 @@ export default function App() {
         </section>
 
         <aside className="side-panel" aria-label="Algorithm details and run state">
-          <AlgorithmPanel algorithm={algorithm} heuristic={heuristic} />
+          <AlgorithmPanel
+            algorithm={algorithm}
+            heuristic={heuristic}
+            movementMode={movementMode}
+          />
           <MetricsPanel
             result={activeResult}
             frontierSize={playback.snapshot.frontierSize}

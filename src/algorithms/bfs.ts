@@ -1,5 +1,5 @@
 import { assertValidGrid, fromIndex, toIndex } from "../core/grid";
-import { getNeighborIndices } from "../core/neighbors";
+import { getNeighbors, resolveMovementOptions } from "../core/neighbors";
 import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { Queue } from "../structures/Queue";
@@ -9,6 +9,7 @@ import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 export function bfs(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
   const recordEvents = options.recordEvents ?? true;
+  const movement = resolveMovementOptions(options);
   const startedAt = performance.now();
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -54,19 +55,19 @@ export function bfs(grid: Grid, options: SearchOptions = {}): SearchResult {
       break;
     }
 
-    for (const neighbor of getNeighborIndices(grid, current)) {
-      if (discovered.has(neighbor)) continue;
+    for (const neighbor of getNeighbors(grid, coordinate, movement)) {
+      if (discovered.has(neighbor.index)) continue;
 
-      discovered.add(neighbor);
-      parents.set(neighbor, current);
-      levels.set(neighbor, level + 1);
-      queue.enqueue(neighbor);
+      discovered.add(neighbor.index);
+      parents.set(neighbor.index, current);
+      levels.set(neighbor.index, level + 1);
+      queue.enqueue(neighbor.index);
       discoveredCount += 1;
       maxFrontierSize = Math.max(maxFrontierSize, queue.size);
 
       if (recordEvents) events.push({
         type: "discovered",
-        coordinate: fromIndex(grid, neighbor),
+        coordinate: neighbor.coordinate,
         frontierSize: queue.size,
         values: {
           parent: coordinate,
@@ -91,5 +92,6 @@ export function bfs(grid: Grid, options: SearchOptions = {}): SearchResult {
     events,
     recordEvents,
     startedAt,
+    movement,
   });
 }

@@ -24,3 +24,15 @@ export function runAlgorithm(
       return astar(grid, options);
   }
 }
+
+export function runAllAlgorithms(
+  grid: Grid,
+  options: SearchOptions = {},
+): Record<AlgorithmId, SearchResult> {
+  return {
+    bfs: bfs(grid, options),
+    dfs: dfs(grid, options),
+    dijkstra: dijkstra(grid, options),
+    astar: astar(grid, options),
+  };
+}

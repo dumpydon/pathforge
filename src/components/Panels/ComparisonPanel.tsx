@@ -1,6 +1,6 @@
 import type { AlgorithmId, SearchResult } from "../../algorithms/types";
 import { ALGORITHM_INFO, ALGORITHM_ORDER } from "../../data/algorithmInfo";
-import { formatRuntime } from "./MetricsPanel";
+import { formatPathCost, formatRuntime } from "./MetricsPanel";
 
 interface ComparisonPanelProps {
   results: Partial<Record<AlgorithmId, SearchResult>>;
@@ -59,7 +59,7 @@ export function ComparisonPanel({
                         : "Minimum cost"}
                   </td>
                   <td>{result ? (result.found ? "Yes" : "No") : "—"}</td>
-                  <td>{result?.pathCost ?? "—"}</td>
+                  <td>{formatPathCost(result?.pathCost ?? null)}</td>
                   <td>{result?.found ? result.pathLength : "—"}</td>
                   <td>{result?.expandedCount ?? "—"}</td>
                   <td>{result?.maxFrontierSize ?? "—"}</td>

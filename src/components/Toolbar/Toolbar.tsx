@@ -1,6 +1,8 @@
 "use client";
 
 import type { AlgorithmId, HeuristicName } from "../../algorithms/types";
+import { HEURISTIC_LABELS, selectableHeuristics } from "../../algorithms/heuristics";
+import type { MovementMode } from "../../core/types";
 import { ALGORITHM_INFO, ALGORITHM_ORDER } from "../../data/algorithmInfo";
 import type { PresetId } from "../../mazes/presets";
 import type { PaintTool } from "../Grid/GridBoard";
@@ -9,6 +11,7 @@ import { GridSizeControls } from "./GridSizeControls";
 interface ToolbarProps {
   algorithm: AlgorithmId;
   heuristic: HeuristicName;
+  movementMode: MovementMode;
   paintTool: PaintTool;
   isPlaying: boolean;
   hasResult: boolean;
@@ -68,8 +71,9 @@ export function Toolbar(props: ToolbarProps) {
               value={props.heuristic}
               onChange={(event) => props.onHeuristicChange(event.target.value as HeuristicName)}
             >
-              <option value="manhattan">Manhattan</option>
-              <option value="euclidean">Euclidean</option>
+              {selectableHeuristics(props.movementMode).map((heuristic) => (
+                <option key={heuristic} value={heuristic}>{HEURISTIC_LABELS[heuristic]}</option>
+              ))}
             </select>
           </label>
         )}

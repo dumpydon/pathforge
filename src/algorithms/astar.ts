@@ -1,9 +1,13 @@
-import { assertValidGrid, fromIndex, toIndex, traversalCost } from "../core/grid";
-import { getNeighborIndices } from "../core/neighbors";
+import { assertValidGrid, fromIndex, toIndex } from "../core/grid";
+import { getNeighbors, resolveMovementOptions } from "../core/neighbors";
 import { reconstructPath } from "../core/path";
 import type { Grid } from "../core/types";
 import { MinHeap } from "../structures/MinHeap";
-import { getHeuristic } from "./heuristics";
+import {
+  defaultHeuristicForMovement,
+  getHeuristic,
+  isHeuristicCompatible,
+} from "./heuristics";
 import { finishSearch } from "./shared";
 import type { SearchEvent, SearchOptions, SearchResult } from "./types";
 
@@ -19,7 +23,11 @@ export function astar(grid: Grid, options: SearchOptions = {}): SearchResult {
   assertValidGrid(grid);
   const recordEvents = options.recordEvents ?? true;
   const startedAt = performance.now();
-  const heuristicName = options.heuristic ?? "manhattan";
+  const movement = resolveMovementOptions(options);
+  const heuristicName = options.heuristic ?? defaultHeuristicForMovement(movement.movementMode);
+  if (!isHeuristicCompatible(heuristicName, movement.movementMode)) {
+    throw new Error(`${heuristicName} is incompatible with ${movement.movementMode} movement.`);
+  }
   const heuristic = getHeuristic(heuristicName);
   const startIndex = toIndex(grid, grid.start);
   const targetIndex = toIndex(grid, grid.target);
@@ -79,23 +87,22 @@ export function astar(grid: Grid, options: SearchOptions = {}): SearchResult {
       break;
     }
 
-    for (const neighbor of getNeighborIndices(grid, current)) {
-      const nextCoordinate = fromIndex(grid, neighbor);
-      const candidateG = gScores[current] + traversalCost(grid, nextCoordinate);
-      if (candidateG >= gScores[neighbor]) continue;
+    for (const neighbor of getNeighbors(grid, coordinate, movement)) {
+      const candidateG = gScores[current] + neighbor.cost;
+      if (candidateG >= gScores[neighbor.index]) continue;
 
-      const previousG = Number.isFinite(gScores[neighbor]) ? gScores[neighbor] : null;
+      const previousG = Number.isFinite(gScores[neighbor.index]) ? gScores[neighbor.index] : null;
       const firstDiscovery = previousG === null;
-      const nextH = heuristic(nextCoordinate, grid.target);
+      const nextH = heuristic(neighbor.coordinate, grid.target);
       const nextF = candidateG + nextH;
-      gScores[neighbor] = candidateG;
-      parents.set(neighbor, current);
+      gScores[neighbor.index] = candidateG;
+      parents.set(neighbor.index, current);
 
       // Reopening preserves correctness for an admissible but inconsistent heuristic.
-      closed.delete(neighbor);
-      open.add(neighbor);
+      closed.delete(neighbor.index);
+      open.add(neighbor.index);
       frontier.push({
-        index: neighbor,
+        index: neighbor.index,
         g: candidateG,
         h: nextH,
         f: nextF,
@@ -106,7 +113,7 @@ export function astar(grid: Grid, options: SearchOptions = {}): SearchResult {
         discoveredCount += 1;
         if (recordEvents) events.push({
           type: "discovered",
-          coordinate: nextCoordinate,
+          coordinate: neighbor.coordinate,
           frontierSize: open.size,
           values: {
             parent: coordinate,
@@ -120,7 +127,7 @@ export function astar(grid: Grid, options: SearchOptions = {}): SearchResult {
 
       if (recordEvents) events.push({
         type: "relaxed",
-        coordinate: nextCoordinate,
+        coordinate: neighbor.coordinate,
         from: coordinate,
         previousCost: previousG,
         frontierSize: open.size,
@@ -145,5 +152,6 @@ export function astar(grid: Grid, options: SearchOptions = {}): SearchResult {
     events,
     recordEvents,
     startedAt,
+    movement,
   });
 }

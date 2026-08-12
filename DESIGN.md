@@ -22,9 +22,9 @@ interface Grid {
 
 The flat terrain array makes coordinate/index conversion constant time and avoids a per-cell object containing UI state. Terrain is one of `normal`, `mud`, `water`, or `wall`; start and target are grid-level coordinates rather than terrain variants.
 
-The grid is an implicit graph. `getNeighbors` derives traversable adjacent coordinates in deterministic `up, right, down, left` order. No adjacency list is stored.
+The grid is an implicit graph. `getNeighbors` derives traversable steps from one shared movement configuration. Four-way mode uses deterministic `up, right, down, left` order; eight-way mode adds four diagonals. No adjacency list is stored.
 
-The cost of an edge is the terrain cost of the destination cell. The start therefore contributes zero to a path's accumulated cost.
+The cost of an edge is `movement distance × destination terrain cost`. Orthogonal distance is 1 and diagonal distance is `sqrt(2)`, so existing four-way costs are unchanged. The start contributes zero to a path's accumulated cost. With the default no-cutting policy, a diagonal requires both adjacent orthogonal cells to be traversable.
 
 Rows and columns are constrained to integers from 5 through 300. Default endpoints share the middle row and use a 15% horizontal inset, which preserves the original 21 × 39 placement while remaining valid at the minimum dimensions.
 
@@ -95,15 +95,15 @@ Playback is enabled only through 10,000 vertices. The current interactive grid r
 
 ## Comparison mechanism
 
-`Run all` calls each pure algorithm synchronously against the same `Grid` reference before playback begins. Interactive runs retain four event logs for replay. Benchmark runs pass `recordEvents: false`; selecting a table row changes the result shown on the canvas without replaying events.
+`Run all` calls each pure algorithm synchronously against the same `Grid` reference and movement options before playback begins. Interactive runs retain four event logs for replay. Benchmark runs pass `recordEvents: false`; selecting a table row changes the result shown on the canvas without replaying events.
 
 The comparison table states each objective:
 
 - BFS: fewest edges
 - DFS: reachability
-- Dijkstra/A*: minimum accumulated terrain cost
+- Dijkstra/A*: minimum accumulated movement cost
 
-Actual terrain cost is reported for every returned path, but weighted boards show an explicit BFS/DFS warning.
+Actual movement cost is reported for every returned path, but weighted boards show an explicit BFS/DFS warning.
 
 ## Data structures and complexity
 
@@ -113,7 +113,7 @@ Actual terrain cost is reported for every returned path, but weighted boards sho
 | DFS frontier | Array stack | amortized `O(1)` push/pop |
 | Weighted frontier | Generic binary min heap | `O(log n)` push/pop, `O(1)` peek |
 | Scores/state | Flat arrays, maps, and sets | expected `O(1)` access |
-| Neighbor lookup | Implicit four-way offsets | `O(1)` per vertex on this grid |
+| Neighbor lookup | Shared four/eight-way movement steps | `O(1)` per vertex on this grid |
 
 Dijkstra and A* insert a new heap entry when a priority improves. An entry is stale if its stored score no longer matches the current score array; stale entries are discarded on pop. This keeps `MinHeap<T>` reusable and avoids a position-map/decrease-key contract.
 
@@ -134,11 +134,9 @@ Maximum frontier size uses the logical open-set size rather than raw heap size, 
 
 ## Heuristic choices
 
-Movement is four-directional with straight step distance 1. Manhattan and Euclidean distance are both admissible because the minimum cost of entering a cell is 1. Manhattan is more informed for this movement model; Euclidean remains a useful comparison and is still consistent.
+Four-way movement uses Manhattan by default. Eight-way movement uses Octile by default, matching diagonal distance `sqrt(2)`. Euclidean remains admissible and consistent in either topology because the minimum terrain multiplier is 1. Manhattan is rejected in eight-way mode because it can overestimate when diagonal travel is allowed.
 
-Tests expose a zero heuristic internally. With `h(n) = 0`, A* must produce the same optimal cost as Dijkstra. Seeded weighted-grid tests also compare Manhattan A* and Dijkstra across many deterministic maps.
-
-Diagonal movement was left out because adding it correctly requires a diagonal multiplier, octile distance, and an explicit corner-cutting rule. Those are related design decisions, not an isolated toggle.
+Tests expose a zero heuristic internally. With `h(n) = 0`, A* must produce the same optimal cost as Dijkstra. Tests compare Manhattan A* with Dijkstra in four-way mode and Octile A* with Dijkstra in eight-way mode.
 
 ## Engineering tradeoffs
 

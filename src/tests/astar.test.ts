@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { astar } from "../algorithms/astar";
 import { dijkstra } from "../algorithms/dijkstra";
+import { octile } from "../algorithms/heuristics";
+import { DIAGONAL_COST } from "../core/neighbors";
 import { createGrid } from "../core/grid";
 import { calculatePathCost, validatePath } from "../core/path";
 import type { Grid, Terrain } from "../core/types";
@@ -26,6 +28,29 @@ describe("A*", () => {
   it("behaves like Dijkstra when h is zero", () => {
     const grid = gridFromRows(["Smm..", ".##w.", "....T"]);
     expect(astar(grid, { heuristic: "zero" }).pathCost).toBe(dijkstra(grid).pathCost);
+  });
+
+  it("matches Dijkstra with Octile in eight-way mode", () => {
+    const grid = gridFromRows(["S....", ".##..", "....T"]);
+    const options = { movementMode: "eight-way", heuristic: "octile" } as const;
+
+    const aStarResult = astar(grid, options);
+    const dijkstraResult = dijkstra(grid, options);
+    expect(aStarResult.pathCost).toBeCloseTo(dijkstraResult.pathCost!);
+    expect(validatePath(grid, aStarResult.path, options)).toBe(true);
+  });
+
+  it("uses an admissible Octile estimate", () => {
+    expect(octile({ row: 0, col: 0 }, { row: 2, col: 2 })).toBeCloseTo(2 * DIAGONAL_COST);
+    expect(octile({ row: 0, col: 0 }, { row: 2, col: 4 })).toBeCloseTo(2 + 2 * DIAGONAL_COST);
+  });
+
+  it("rejects Manhattan with eight-way movement", () => {
+    const grid = gridFromRows(["S..", "...", "..T"]);
+    expect(() => astar(grid, {
+      movementMode: "eight-way",
+      heuristic: "manhattan",
+    })).toThrow(/incompatible/);
   });
 
   it("reports an unreachable target", () => {
@@ -80,8 +105,16 @@ describe("seeded weighted-grid verification", () => {
       const grid = randomGrid(seed);
       const dijkstraResult = dijkstra(grid);
       const aStarResult = astar(grid, { heuristic: "manhattan" });
+      const eightWayOptions = { movementMode: "eight-way", heuristic: "octile" } as const;
+      const eightWayDijkstra = dijkstra(grid, eightWayOptions);
+      const eightWayAStar = astar(grid, eightWayOptions);
 
       expect(aStarResult.found).toBe(dijkstraResult.found);
+      expect(eightWayAStar.found).toBe(eightWayDijkstra.found);
+      if (eightWayDijkstra.found) {
+        expect(eightWayAStar.pathCost).toBeCloseTo(eightWayDijkstra.pathCost!);
+        expect(validatePath(grid, eightWayAStar.path, eightWayOptions)).toBe(true);
+      }
       if (!dijkstraResult.found) continue;
 
       reachableCases += 1;

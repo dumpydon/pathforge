@@ -13,7 +13,8 @@ export interface Grid {
   target: Coordinate;
 }
 
-export type Movement = "four-way";
+export type MovementMode = "four-way" | "eight-way";
+export type CornerPolicy = "no-cutting" | "allow-cutting";
 
 export const TERRAIN_COST: Readonly<Record<Exclude<Terrain, "wall">, number>> = {
   normal: 1,
@@ -28,4 +29,3 @@ export function coordinatesEqual(a: Coordinate, b: Coordinate): boolean {
 export function coordinateKey(coordinate: Coordinate): string {
   return `${coordinate.row}:${coordinate.col}`;
 }
-
