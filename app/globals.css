@@ -543,6 +543,10 @@ a {
   width: 100%;
 }
 
+.initial-grid-stage.is-pending {
+  visibility: hidden;
+}
+
 .benchmark-notice {
   display: flex;
   align-items: baseline;
