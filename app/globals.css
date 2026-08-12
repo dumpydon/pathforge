@@ -119,18 +119,121 @@ a {
   gap: 12px;
 }
 
-.brand-mark {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
+.pathforge-logo {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  display: block;
+  overflow: hidden;
   border: 1px solid var(--border-strong);
+  border-radius: 7px;
   background: var(--surface-raised);
-  color: var(--accent-strong);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+}
+
+.pathforge-logo__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pathforge-logo__graph {
+  fill: none;
+  stroke: var(--text-subtle);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+.pathforge-logo__neutral-nodes {
+  fill: var(--surface-raised);
+  stroke: var(--text-muted);
+  stroke-width: 1.2;
+}
+
+.pathforge-logo__route {
+  fill: none;
+  stroke: var(--pathforge-orange);
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: pathforge-route-draw 560ms cubic-bezier(0.4, 0, 0.2, 1) 130ms both;
+}
+
+.pathforge-logo__active-node,
+.pathforge-logo__arrow {
+  fill: var(--pathforge-orange);
+}
+
+.pathforge-logo__start {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pathforge-start-light 180ms ease-out 70ms both;
+}
+
+.pathforge-logo__middle {
+  animation: pathforge-node-arrive 120ms ease-out 380ms both;
+}
+
+.pathforge-logo__destination,
+.pathforge-logo__arrow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pathforge-destination-arrive 180ms ease-out 640ms both;
+}
+
+@keyframes pathforge-route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pathforge-start-light {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  55% {
+    filter: drop-shadow(0 0 2px rgba(247, 147, 30, 0.42));
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+@keyframes pathforge-node-arrive {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pathforge-destination-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.78);
+  }
+
+  62% {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 2.5px rgba(247, 147, 30, 0.48));
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
 }
 
 .brand-line {
@@ -1211,5 +1314,17 @@ kbd {
   .random-obstacles-button {
     background-position: 45% 50%;
     animation: none;
+  }
+
+  .pathforge-logo__route,
+  .pathforge-logo__start,
+  .pathforge-logo__middle,
+  .pathforge-logo__destination,
+  .pathforge-logo__arrow {
+    animation: none;
+  }
+
+  .pathforge-logo__route {
+    stroke-dashoffset: 0;
   }
 }
