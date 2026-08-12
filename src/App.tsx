@@ -25,8 +25,16 @@ import {
   type ComparisonResults,
 } from "./state/boardSession";
 
+const INITIAL_OBSTACLE_SEED = 0x50415448;
+
 export default function App() {
-  const [session, setSession] = useState(() => createBoardSession(openFieldPreset(), "Open Field"));
+  const [session, setSession] = useState(() =>
+    createBoardSession(
+      // A stable seed keeps the server and client renders identical during hydration.
+      randomObstacles(openFieldPreset(), undefined, INITIAL_OBSTACLE_SEED),
+      "Random obstacles",
+    ),
+  );
   const [algorithm, setAlgorithm] = useState<AlgorithmId>("astar");
   const [heuristic, setHeuristic] = useState<HeuristicName>("manhattan");
   const [paintTool, setPaintTool] = useState<PaintTool>("wall");
