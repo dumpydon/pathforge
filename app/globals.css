@@ -142,6 +142,13 @@ a {
   stroke-width: 1.35;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.pathforge-logo__graph path:first-child {
+  stroke: #fff;
+}
+
+.pathforge-logo__graph path:last-child {
   opacity: 0.8;
 }
 
@@ -149,6 +156,11 @@ a {
   fill: var(--surface-raised);
   stroke: var(--text-muted);
   stroke-width: 1.2;
+}
+
+.pathforge-logo__neutral-nodes circle:nth-child(2),
+.pathforge-logo__neutral-nodes circle:nth-child(3) {
+  stroke: #fff;
 }
 
 .pathforge-logo__route {
