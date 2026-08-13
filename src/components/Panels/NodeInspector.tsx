@@ -1,5 +1,5 @@
 import type { AlgorithmId } from "../../algorithms/types";
-import { terrainAt, terrainCost } from "../../core/grid";
+import { terrainAt, terrainCost, terrainKind } from "../../core/grid";
 import type { Coordinate, Grid } from "../../core/types";
 import type { PlaybackNode } from "../../playback/types";
 
@@ -18,6 +18,7 @@ function formatCoordinate(coordinate: Coordinate | null): string {
 export function NodeInspector({ algorithm, grid, coordinate, node, playbackEnabled }: NodeInspectorProps) {
   const terrain = coordinate ? terrainAt(grid, coordinate) : null;
   const cost = terrain && terrain !== "wall" ? terrainCost(terrain) : null;
+  const kind = terrain ? terrainKind(terrain) : null;
 
   return (
     <section className="panel-section inspector-panel">
@@ -28,7 +29,8 @@ export function NodeInspector({ algorithm, grid, coordinate, node, playbackEnabl
 
       {coordinate ? (
         <dl className="inspector-list">
-          <div><dt>Terrain</dt><dd>{terrain}{cost !== null ? ` · cost ${cost}` : ""}</dd></div>
+          <div><dt>Terrain</dt><dd>{kind === "custom" ? "Custom" : kind}</dd></div>
+          <div><dt>Traversal cost</dt><dd>{cost ?? "blocked"}</dd></div>
           <div><dt>State</dt><dd>{node?.state ?? (playbackEnabled ? "unvisited" : "not recorded")}</dd></div>
           {algorithm === "bfs" && <div><dt>Level</dt><dd>{node?.level ?? "—"}</dd></div>}
           {(algorithm === "dijkstra" || algorithm === "astar") && (

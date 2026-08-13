@@ -1,8 +1,12 @@
 import {
-  TERRAIN_COST,
+  MAX_TERRAIN_COST,
+  MIN_TERRAIN_COST,
+  TERRAIN_COSTS,
   type Coordinate,
+  type CustomTerrain,
   type Grid,
   type Terrain,
+  type TerrainKind,
 } from "./types";
 import {
   assertSupportedGridDimensions,
@@ -54,10 +58,49 @@ export function assertValidGrid(grid: Grid): void {
   }
 
   for (const terrain of grid.terrain) {
-    if (terrain !== "normal" && terrain !== "mud" && terrain !== "water" && terrain !== "wall") {
+    if (!isTerrain(terrain)) {
       throw new Error(`Unsupported terrain value: ${String(terrain)}`);
     }
   }
+}
+
+export function isValidTerrainCost(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Number.isInteger(value) &&
+    value >= MIN_TERRAIN_COST &&
+    value <= MAX_TERRAIN_COST
+  );
+}
+
+export function createCustomTerrain(cost: number): CustomTerrain {
+  if (!isValidTerrainCost(cost)) {
+    throw new RangeError(
+      `Custom terrain cost must be an integer from ${MIN_TERRAIN_COST} to ${MAX_TERRAIN_COST}.`,
+    );
+  }
+  return { type: "custom", cost };
+}
+
+export function isCustomTerrain(terrain: unknown): terrain is CustomTerrain {
+  if (typeof terrain !== "object" || terrain === null) return false;
+  const candidate = terrain as Partial<CustomTerrain>;
+  return candidate.type === "custom" && isValidTerrainCost(candidate.cost);
+}
+
+export function isTerrain(terrain: unknown): terrain is Terrain {
+  return (
+    terrain === "normal" ||
+    terrain === "mud" ||
+    terrain === "water" ||
+    terrain === "wall" ||
+    isCustomTerrain(terrain)
+  );
+}
+
+export function terrainKind(terrain: Terrain): TerrainKind {
+  return isCustomTerrain(terrain) ? "custom" : terrain;
 }
 
 export function isInBounds(grid: Pick<Grid, "rows" | "cols">, coordinate: Coordinate): boolean {
@@ -89,11 +132,8 @@ export function terrainCost(terrain: Terrain): number {
     return Number.POSITIVE_INFINITY;
   }
 
-  const cost = TERRAIN_COST[terrain];
-  if (cost < 0) {
-    throw new Error("Negative terrain costs are unsupported.");
-  }
-  return cost;
+  if (isCustomTerrain(terrain)) return terrain.cost;
+  return TERRAIN_COSTS[terrain];
 }
 
 export function traversalCost(grid: Grid, destination: Coordinate): number {
@@ -110,7 +150,13 @@ export function setTerrain(grid: Grid, coordinate: Coordinate, terrain: Terrain)
   }
 
   const index = toIndex(grid, coordinate);
-  if (grid.terrain[index] === terrain) return grid;
+  const current = grid.terrain[index];
+  if (
+    current === terrain ||
+    (isCustomTerrain(current) && isCustomTerrain(terrain) && current.cost === terrain.cost)
+  ) {
+    return grid;
+  }
 
   const nextTerrain = grid.terrain.slice();
   nextTerrain[index] = terrain;

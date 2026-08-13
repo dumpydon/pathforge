@@ -2,17 +2,25 @@
 
 import { useEffect, useRef, type MouseEvent } from "react";
 import type { SearchResult } from "../../algorithms/types";
-import { coordinatesEqual, type Coordinate, type Grid, type Terrain } from "../../core/types";
+import { isCustomTerrain } from "../../core/grid";
+import {
+  coordinatesEqual,
+  type Coordinate,
+  type Grid,
+  type PresetTerrain,
+} from "../../core/types";
 import { GridLegend } from "./GridLegend";
+import { customTerrainColor } from "./terrainPresentation";
 
 interface BenchmarkGridProps {
   grid: Grid;
   result: SearchResult | null;
+  customTerrainCost: number;
   selectedCoordinate: Coordinate | null;
   onInspect: (coordinate: Coordinate) => void;
 }
 
-const TERRAIN_COLORS: Record<Terrain, string> = {
+const TERRAIN_COLORS: Record<PresetTerrain | "wall", string> = {
   normal: "#121820",
   mud: "#6f5838",
   water: "#244c68",
@@ -41,7 +49,13 @@ function drawEndpoint(
   }
 }
 
-export function BenchmarkGrid({ grid, result, selectedCoordinate, onInspect }: BenchmarkGridProps) {
+export function BenchmarkGrid({
+  grid,
+  result,
+  customTerrainCost,
+  selectedCoordinate,
+  onInspect,
+}: BenchmarkGridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +88,9 @@ export function BenchmarkGrid({ grid, result, selectedCoordinate, onInspect }: B
         if (terrain === "normal") continue;
         const row = Math.floor(index / grid.cols);
         const col = index % grid.cols;
-        context.fillStyle = TERRAIN_COLORS[terrain];
+        context.fillStyle = isCustomTerrain(terrain)
+          ? customTerrainColor(terrain.cost)
+          : TERRAIN_COLORS[terrain];
         context.fillRect(col * cellWidth, row * cellHeight, Math.max(1, cellWidth), Math.max(1, cellHeight));
       }
 
@@ -150,8 +166,7 @@ export function BenchmarkGrid({ grid, result, selectedCoordinate, onInspect }: B
           onClick={inspect}
         />
       </div>
-      <GridLegend />
+      <GridLegend customTerrainCost={customTerrainCost} />
     </div>
   );
 }
-

@@ -15,10 +15,17 @@ import { ComparisonPanel } from "./components/Panels/ComparisonPanel";
 import { MetricsPanel } from "./components/Panels/MetricsPanel";
 import { NodeInspector } from "./components/Panels/NodeInspector";
 import { Toolbar } from "./components/Toolbar/Toolbar";
-import { clearTerrain, moveEndpoint, setTerrain } from "./core/grid";
+import {
+  clearTerrain,
+  createCustomTerrain,
+  moveEndpoint,
+  setTerrain,
+  terrainCost,
+} from "./core/grid";
 import { isBenchmarkGrid } from "./core/gridDimensions";
 import {
   coordinateKey,
+  DEFAULT_CUSTOM_TERRAIN_COST,
   type Coordinate,
   type Grid,
   type MovementMode,
@@ -47,6 +54,7 @@ export default function App() {
   const [heuristic, setHeuristic] = useState<HeuristicName>("manhattan");
   const [movementMode, setMovementMode] = useState<MovementMode>("four-way");
   const [paintTool, setPaintTool] = useState<PaintTool>("wall");
+  const [customTerrainCost, setCustomTerrainCost] = useState(DEFAULT_CUSTOM_TERRAIN_COST);
 
   useEffect(() => {
     if (hasGeneratedInitialGrid.current) return;
@@ -161,7 +169,11 @@ export default function App() {
 
   const paint = useCallback(
     (coordinate: Coordinate) => {
-      const terrain: Terrain = paintTool === "erase" ? "normal" : paintTool;
+      const terrain: Terrain = paintTool === "erase"
+        ? "normal"
+        : paintTool === "custom"
+        ? createCustomTerrain(customTerrainCost)
+        : paintTool;
       resetPlayback();
       setSession((current) => ({
         ...current,
@@ -171,7 +183,7 @@ export default function App() {
         activeResult: null,
       }));
     },
-    [paintTool, resetPlayback],
+    [customTerrainCost, paintTool, resetPlayback],
   );
 
   const moveGridEndpoint = useCallback(
@@ -247,7 +259,7 @@ export default function App() {
     ? playback.snapshot.nodes.get(coordinateKey(selectedCoordinate))
     : undefined;
   const hasWeightedTerrain = useMemo(
-    () => grid.terrain.some((terrain) => terrain === "mud" || terrain === "water"),
+    () => grid.terrain.some((terrain) => terrain !== "wall" && terrainCost(terrain) > 1),
     [grid.terrain],
   );
   const eventProgress = benchmarkMode
@@ -296,6 +308,7 @@ export default function App() {
         heuristic={heuristic}
         movementMode={movementMode}
         paintTool={paintTool}
+        customTerrainCost={customTerrainCost}
         isPlaying={playback.isPlaying}
         hasResult={Boolean(activeResult)}
         playbackEnabled={!benchmarkMode}
@@ -306,6 +319,7 @@ export default function App() {
         onAlgorithmChange={changeAlgorithm}
         onHeuristicChange={changeHeuristic}
         onPaintToolChange={setPaintTool}
+        onCustomTerrainCostChange={setCustomTerrainCost}
         onRun={runSelected}
         onPause={pausePlayback}
         onResume={playPlayback}
@@ -349,6 +363,7 @@ export default function App() {
               <BenchmarkGrid
                 grid={grid}
                 result={activeResult}
+                customTerrainCost={customTerrainCost}
                 selectedCoordinate={selectedCoordinate}
                 onInspect={inspectCoordinate}
               />
@@ -356,6 +371,7 @@ export default function App() {
               <GridBoard
                 grid={grid}
                 snapshot={playback.snapshot}
+                customTerrainCost={customTerrainCost}
                 selectedCoordinate={selectedCoordinate}
                 onInspect={inspectCoordinate}
                 onPaint={paint}

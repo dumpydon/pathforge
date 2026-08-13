@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties, type PointerEvent } from "react";
-import { terrainAt } from "../../core/grid";
+import { isCustomTerrain, terrainAt, terrainKind } from "../../core/grid";
 import { coordinateKey, coordinatesEqual, type Coordinate, type Grid } from "../../core/types";
 import type { PlaybackSnapshot } from "../../playback/types";
 import { GridLegend } from "./GridLegend";
+import { customTerrainColor } from "./terrainPresentation";
 
-export type PaintTool = "wall" | "mud" | "water" | "erase";
+export type PaintTool = "wall" | "mud" | "water" | "custom" | "erase";
 
 interface GridBoardProps {
   grid: Grid;
   snapshot: PlaybackSnapshot;
+  customTerrainCost: number;
   selectedCoordinate: Coordinate | null;
   onInspect: (coordinate: Coordinate) => void;
   onPaint: (coordinate: Coordinate) => void;
@@ -22,6 +24,7 @@ type DragMode = "paint" | "start" | "target" | null;
 export function GridBoard({
   grid,
   snapshot,
+  customTerrainCost,
   selectedCoordinate,
   onInspect,
   onPaint,
@@ -72,6 +75,7 @@ export function GridBoard({
           const coordinate = { row: Math.floor(index / grid.cols), col: index % grid.cols };
           const key = coordinateKey(coordinate);
           const terrain = terrainAt(grid, coordinate);
+          const kind = terrainKind(terrain);
           const playbackNode = snapshot.nodes.get(key);
           const isStart = coordinatesEqual(coordinate, grid.start);
           const isTarget = coordinatesEqual(coordinate, grid.target);
@@ -87,7 +91,7 @@ export function GridBoard({
               type="button"
               className={[
                 "grid-cell",
-                `terrain-${terrain}`,
+                `terrain-${kind}`,
                 playbackNode ? `search-${playbackNode.state}` : "",
                 isStart ? "is-start" : "",
                 isTarget ? "is-target" : "",
@@ -96,7 +100,12 @@ export function GridBoard({
                 .filter(Boolean)
                 .join(" ")}
               role="gridcell"
-              aria-label={`Row ${coordinate.row + 1}, column ${coordinate.col + 1}, ${terrain}${stateLabel}${
+              style={isCustomTerrain(terrain)
+                ? { backgroundColor: customTerrainColor(terrain.cost) }
+                : undefined}
+              aria-label={`Row ${coordinate.row + 1}, column ${coordinate.col + 1}, ${
+                isCustomTerrain(terrain) ? `custom terrain, cost ${terrain.cost}` : terrain
+              }${stateLabel}${
                 endpointLabel ? `, ${endpointLabel === "S" ? "start" : endpointLabel === "T" ? "target" : "start and target"}` : ""
               }`}
               onPointerDown={(event) => beginInteraction(event, coordinate)}
@@ -108,8 +117,7 @@ export function GridBoard({
           );
         })}
       </div>
-      <GridLegend />
+      <GridLegend customTerrainCost={customTerrainCost} />
     </div>
   );
 }
-

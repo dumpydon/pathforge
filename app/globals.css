@@ -379,6 +379,8 @@ a {
 
 .toolbar-secondary {
   min-height: 48px;
+  flex-wrap: wrap;
+  padding-block: 8px;
 }
 
 .control-group {
@@ -437,12 +439,36 @@ a {
 
 .tool-buttons button {
   padding: 0 10px;
+  white-space: nowrap;
 }
 
 .tool-buttons button span {
   margin-right: 6px;
   color: var(--accent-strong);
   font-family: var(--font-mono);
+}
+
+.custom-cost-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.custom-cost-control input {
+  width: 58px;
+  height: 31px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.custom-cost-control input[aria-invalid="true"] {
+  border-color: var(--red);
 }
 
 .playback-actions {
@@ -788,6 +814,16 @@ a {
   background-size: 7px 7px;
 }
 
+.grid-cell.terrain-custom {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0,
+    transparent 4px,
+    rgba(255, 255, 255, 0.12) 4px,
+    rgba(255, 255, 255, 0.12) 5px
+  );
+}
+
 .grid-cell.search-frontier {
   background-color: var(--frontier);
   background-image: none;
@@ -884,6 +920,14 @@ a {
 .swatch-path { background: var(--path); }
 .swatch-mud { background: var(--mud); }
 .swatch-water { background: var(--water); }
+.swatch-custom {
+  background-color: hsl(278 34% 29%);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    rgba(255, 255, 255, 0.18) 3px 4px
+  );
+}
 .swatch-wall { background: var(--wall); }
 
 .workspace-note {

@@ -19,7 +19,7 @@ The repository is also structured so the algorithm code can be discussed and tes
 
 ## Features
 
-- Paint walls, mud (cost 3), and water (cost 5); erase terrain or drag the start and target.
+- Paint walls, mud (cost 3), water (cost 5), and custom integer weights from 1–100; erase terrain or drag the start and target.
 - Run, pause, resume, reset, or step through one complete node expansion at a time.
 - Inspect a node's state, parent, level, distance, or `g`/`h`/`f` values as appropriate.
 - Run all four algorithms immediately on an unchanged grid, then replay any recorded run.
@@ -109,7 +109,7 @@ Manhattan is available in four-way mode; Octile is available in eight-way mode; 
 
 ## Weighted-grid behavior
 
-Normal terrain costs 1, mud costs 3, water costs 5, and walls are impassable. A path's cost excludes the start and includes each entered cell multiplied by the step distance. Diagonal movement is allowed only when both adjacent orthogonal cells are traversable, preventing corner clipping.
+Normal terrain costs 1, mud costs 3, water costs 5, custom terrain stores its selected integer cost from 1–100, and walls are impassable. A path's cost excludes the start and includes each entered cell multiplied by the step distance. Diagonal movement is allowed only when both adjacent orthogonal cells are traversable, preventing corner clipping.
 
 Negative costs cannot be represented by the terrain model and unknown terrain values fail validation. Dijkstra and A* minimize this accumulated cost. BFS and DFS use the same traversability graph but do not use the weight during frontier ordering.
 
@@ -120,7 +120,7 @@ Vitest tests the algorithm layer without rendering React. Coverage includes:
 - heap ordering, duplicates, empty behavior, and a custom comparator
 - BFS shortest routes, obstacles, failure, and `start === target`
 - DFS reachability, cycles, and failure
-- Dijkstra weighted detours, failure, and terrain validation
+- Dijkstra weighted and custom-cost detours, failure, and terrain validation
 - A* open fields, obstacles, weighted grids, failure, `start === target`, and zero heuristic
 - path endpoints, legal adjacency, wall avoidance, and recomputed cost
 - deterministic seeded weighted grids where A* must match Dijkstra for every reachable case

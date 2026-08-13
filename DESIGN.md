@@ -20,7 +20,7 @@ interface Grid {
 }
 ```
 
-The flat terrain array makes coordinate/index conversion constant time and avoids a per-cell object containing UI state. Terrain is one of `normal`, `mud`, `water`, or `wall`; start and target are grid-level coordinates rather than terrain variants.
+The flat terrain array makes coordinate/index conversion constant time and avoids per-cell UI state. Existing terrain remains represented by `normal`, `mud`, `water`, or `wall`; a custom cell uses a small `{ type: "custom", cost }` value validated to an integer from 1–100. This preserves preset compatibility while keeping the custom traversal cost in the domain model. Start and target are grid-level coordinates rather than terrain variants.
 
 The grid is an implicit graph. `getNeighbors` derives traversable steps from one shared movement configuration. Four-way mode uses deterministic `up, right, down, left` order; eight-way mode adds four diagonals. No adjacency list is stored.
 
@@ -123,7 +123,7 @@ Maximum frontier size uses the logical open-set size rather than raw heap size, 
 
 - The grid is finite.
 - Walls are impassable.
-- Terrain costs are non-negative and, for current terrain, at least 1.
+- Traversable terrain costs are integers from 1–100 in the Grid Lab editor; walls are impassable.
 - BFS returns a minimum-edge path because every grid transition counts as one edge for its objective.
 - DFS is deterministic but not optimal.
 - Dijkstra finalizes a node only after popping its current minimum distance.
