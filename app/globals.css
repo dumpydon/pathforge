@@ -1069,16 +1069,54 @@ dd {
   padding: 4px 6px;
 }
 
+.metrics-status {
+  --status-glow: transparent;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 9px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  animation: metrics-status-reveal 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .status-found {
-  border-color: #2f6f44;
-  background: var(--green-muted);
+  --status-glow: rgba(86, 211, 100, 0.24);
+  border-color: #3f8b55;
+  background: rgba(24, 60, 38, 0.82);
   color: #7ee787;
+  box-shadow: 0 0 10px var(--status-glow);
 }
 
 .status-missing {
-  border-color: #713b3b;
-  background: #3d2020;
+  --status-glow: rgba(248, 81, 73, 0.2);
+  border-color: #8b4542;
+  background: rgba(61, 32, 32, 0.82);
   color: #ff7b72;
+  box-shadow: 0 0 10px var(--status-glow);
+}
+
+@keyframes metrics-status-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+    box-shadow: 0 0 0 transparent;
+  }
+
+  62% {
+    opacity: 1;
+    transform: scale(1.035);
+    box-shadow: 0 0 14px var(--status-glow);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .metric-grid dd {
@@ -1434,5 +1472,9 @@ kbd {
 
   .pathforge-logo__route {
     stroke-dashoffset: 0;
+  }
+
+  .metrics-status {
+    animation: none;
   }
 }

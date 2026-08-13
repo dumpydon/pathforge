@@ -56,6 +56,7 @@ export default function App() {
   const [paintTool, setPaintTool] = useState<PaintTool>("wall");
   const [customTerrainCost, setCustomTerrainCost] = useState(DEFAULT_CUSTOM_TERRAIN_COST);
   const [logoReplayToken, setLogoReplayToken] = useState(0);
+  const [statusRevealToken, setStatusRevealToken] = useState(0);
 
   useEffect(() => {
     if (hasGeneratedInitialGrid.current) return;
@@ -93,6 +94,7 @@ export default function App() {
 
   const activateResult = useCallback(
     (result: ReturnType<typeof runAlgorithm>, autoplay: boolean) => {
+      setStatusRevealToken((token) => token + 1);
       setSession((current) => ({ ...current, activeResult: result }));
       if (benchmarkMode) resetPlayback();
       else loadPlayback(result, autoplay);
@@ -121,6 +123,7 @@ export default function App() {
       movementMode,
       recordEvents: true,
     });
+    setStatusRevealToken((token) => token + 1);
     setSession((current) => ({ ...current, activeResult: result }));
     loadPlayback(result, false);
     stepPlayback();
@@ -134,6 +137,7 @@ export default function App() {
       recordEvents: !benchmarkMode,
     });
     const selected = results[algorithm]!;
+    setStatusRevealToken((token) => token + 1);
     setSession((current) => ({ ...current, comparisonResults: results, activeResult: selected }));
     if (benchmarkMode) resetPlayback();
     else loadPlayback(selected, false);
@@ -402,6 +406,7 @@ export default function App() {
             result={activeResult}
             frontierSize={playback.snapshot.frontierSize}
             playbackEnabled={!benchmarkMode}
+            statusRevealToken={statusRevealToken}
           />
           <NodeInspector
             algorithm={algorithm}

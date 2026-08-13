@@ -4,6 +4,7 @@ interface MetricsPanelProps {
   result: SearchResult | null;
   frontierSize: number;
   playbackEnabled: boolean;
+  statusRevealToken: number;
 }
 
 function formatRuntime(milliseconds: number): string {
@@ -19,14 +20,17 @@ function formatPathCost(cost: number | null): string {
   return cost.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function MetricsPanel({ result, frontierSize, playbackEnabled }: MetricsPanelProps) {
+export function MetricsPanel({ result, frontierSize, playbackEnabled, statusRevealToken }: MetricsPanelProps) {
   return (
     <section className="panel-section metrics-panel">
       <div className="section-heading compact-heading">
         <h2>Run metrics</h2>
         {result && (
-          <span className={`status-badge ${result.found ? "status-found" : "status-missing"}`}>
-            {result.found ? "Path found" : "No path"}
+          <span
+            key={statusRevealToken}
+            className={`status-badge metrics-status ${result.found ? "status-found" : "status-missing"}`}
+          >
+            {result.found ? "Path Found" : "No Path Found"}
           </span>
         )}
       </div>
