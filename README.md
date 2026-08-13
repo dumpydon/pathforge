@@ -18,7 +18,7 @@ The algorithms run independently from React. Interactive runs produce a typed ev
       2) non matrix style graph possibility ,,,, node edgw, node.val Tree style pad
       3) custom ai interpret dataset feeding of graph/Adj/edges/01/landwater,,
       
-## Why I built it
+## Why i made I+ AI built it
 
 I wanted to compare more than the final paths. Two algorithms can both reach a target while doing substantially different work, and a path with fewer edges is not necessarily cheaper on weighted terrain. PathForge makes discovery order, expansion order, frontier growth, path cost, and A* heuristic behavior inspectable under the same map.
 
