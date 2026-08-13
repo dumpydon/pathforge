@@ -1,8 +1,3 @@
-# NEXT TODO for verison 2
-      1) save projects,, CRUD feature
-      2) non matrix style graph possibility ,,,, node edgw, node.val Tree style pad
-      3) custom ai interpret dataset feeding of graph/Adj/edges/01/landwater,,
-
 
 # PathForge
 i made an interactive graph-search visualization laboratory for exploring, visualizing, and comparing
@@ -14,6 +9,12 @@ BFS, DFS, Dijkstra, and A* and other graph path finding algos.
 PathForge is an interactive graph-search laboratory for visualizing and comparing BFS, DFS, Dijkstra and A* on weighted grid environments.
 
 The algorithms run independently from React. Interactive runs produce a typed event log that the playback layer consumes later; large-grid benchmark runs use the same algorithms without recording events.
+
+# NEXT TODO for verison 2
+      1) save projects,, CRUD feature
+      2) non matrix style graph possibility ,,,, node edgw, node.val Tree style pad
+      3) custom ai interpret dataset feeding of graph/Adj/edges/01/landwater,,
+      
 
 ![PathForge running A* on the Weighted Detour scenario](docs/astar.png)
 
