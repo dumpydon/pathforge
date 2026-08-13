@@ -1,7 +1,7 @@
-# NEXT TODO
-save projects,, 
-node edgw, node.val Tree style pad
-custom ai interpret dataset feeding of graph/Adj/edges/01/landwater,,
+# NEXT TODO for verison 2
+      1) save projects,, CRUD feature
+      2) non matrix style graph possibility ,,,, node edgw, node.val Tree style pad
+      3) custom ai interpret dataset feeding of graph/Adj/edges/01/landwater,,
 
 
 # PathForge
