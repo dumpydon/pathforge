@@ -1,3 +1,9 @@
+# NEXT TODO
+save projects,, 
+node edgw, node.val Tree style pad
+custom ai interpret dataset feeding of graph/Adj/edges/01/landwater,,
+
+
 # PathForge
 i made an interactive graph-search visualization laboratory for exploring, visualizing, and comparing
 
