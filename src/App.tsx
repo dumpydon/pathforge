@@ -55,6 +55,7 @@ export default function App() {
   const [movementMode, setMovementMode] = useState<MovementMode>("four-way");
   const [paintTool, setPaintTool] = useState<PaintTool>("wall");
   const [customTerrainCost, setCustomTerrainCost] = useState(DEFAULT_CUSTOM_TERRAIN_COST);
+  const [logoReplayToken, setLogoReplayToken] = useState(0);
 
   useEffect(() => {
     if (hasGeneratedInitialGrid.current) return;
@@ -100,6 +101,7 @@ export default function App() {
   );
 
   const runSelected = useCallback(() => {
+    setLogoReplayToken((token) => token + 1);
     const result = runAlgorithm(algorithm, grid, {
       heuristic,
       movementMode,
@@ -125,6 +127,7 @@ export default function App() {
   }, [activeResult, algorithm, benchmarkMode, grid, heuristic, loadPlayback, movementMode, stepPlayback]);
 
   const runAll = useCallback(() => {
+    setLogoReplayToken((token) => token + 1);
     const results: ComparisonResults = runAllAlgorithms(grid, {
       heuristic,
       movementMode,
@@ -272,7 +275,7 @@ export default function App() {
     <main className="app-shell">
       <header className="topbar">
         <div className="brand-lockup">
-          <PathForgeLogo />
+          <PathForgeLogo replayToken={logoReplayToken} />
           <div>
             <div className="brand-line">
               <h1 className="pathforge-wordmark">PathForge</h1>

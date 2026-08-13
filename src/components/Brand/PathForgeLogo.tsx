@@ -1,7 +1,12 @@
-export function PathForgeLogo() {
+interface PathForgeLogoProps {
+  replayToken: number;
+}
+
+export function PathForgeLogo({ replayToken }: PathForgeLogoProps) {
   return (
     <div className="pathforge-logo" role="img" aria-label="PathForge">
       <svg
+        key={replayToken}
         className="pathforge-logo__svg"
         viewBox="0 0 56 56"
         aria-hidden="true"
