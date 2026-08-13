@@ -96,7 +96,7 @@ export function Toolbar(props: ToolbarProps) {
           <button type="button" className="button" onClick={props.onReset}>
             Reset search
           </button>
-          <button type="button" className="text-button danger" onClick={props.onClear}>
+          <button type="button" className="button" onClick={props.onClear}>
             Clear board
           </button>
         </div>
