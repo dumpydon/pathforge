@@ -14,7 +14,9 @@ The algorithms run independently from React. Interactive runs produce a typed ev
 ![PathForge running A* on the Weighted Detour scenario](docs/astar.png)
 
 # NEXT TODO for verison 2
-      0) hover descpt showing over buttons floating
+      0a) hover descpt showing over buttons floating
+      0b) pause and play steps front and back (<-backward-)  (|pause|)  (-forward->) 
+      0c) ctrl z for keys and shortcut hotkeys introduction
       1) non matrix style graph possibility ,,,, node edgw, node.val Tree style pad
       1) save projects,, CRUD feature, login on dashboard to view saved graphs u already made
       2) 
